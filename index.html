@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>设计师工作站</title>
-<script>WORKBENCH_VERSION='v33-2026-09-20';</script>
+<script>WORKBENCH_VERSION='v34-2026-09-20';</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 #topbar .sp{flex:1}
@@ -81,7 +81,7 @@ table.calct td.ctr{font-size:14px;color:var(--brand-d);font-weight:700}
 .bar .hint{font-size:12px;color:#8a8578}
 .btn.brand{padding:7px 14px;font-size:13px}
 .btn.mini{padding:2px 8px;font-size:11.5px}
-.btn.mini.brand{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn.mini.brand{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}/* B6：原来写死 #fff，夜间档白字压金底 #e0a94f 只有 2.11；改吃 --brand-ink（暖/冷两档该 token 本来就是 #fff，逐像素不变；夜档 #1a1508 压金底 8.62） */
 .btn.mini.danger{color:#b3261e;border-color:#e3b7b3;background:#fdf3f2}
 .pheadin{display:flex;align-items:center;gap:6px}
 .pheadin .pt{flex:1;min-width:120px;background:transparent;border:1px solid transparent;border-radius:4px;padding:2px 4px;font-weight:700;font-size:13px;color:#5b4a26}
@@ -121,7 +121,7 @@ table.q td.ed.qcell-g textarea:focus,table.q td.ed.qcell-h textarea:focus,table.
 .status-badge.s4{background:#f3e9fb;color:#7b3fb8}
 .status-badge.s5{background:#e8f1f8;color:#2b6f9e}
 .status-badge.s6{background:#f3f0ea;color:#8a8578}
-.paymini{font-size:10px;color:#b06a00;background:#fdf3e4;border-radius:10px;padding:1px 7px;white-space:nowrap}
+.paymini{font-size:10px;color:#8f5600;background:#fdf3e4;border-radius:10px;padding:1px 7px;white-space:nowrap}/* B6：客户列表里那颗「已收 0%」10 个字，原来 #b06a00 压 #fdf3e4 = 3.90（三档同色：这条自己带了写死的米黄底，不走主题）→ 同色系琥珀加深到 #8f5600 = 5.46 */
 .pctwrap{display:inline-flex;align-items:center;gap:2px;border:1px solid var(--line);border-radius:5px;padding:3px 6px;background:#fff}
 .pctsign{font-size:12px;color:var(--mut)}
 /* 打印预览层 */
@@ -252,8 +252,8 @@ to{opacity:1}}
 .save-lamp.st-err{color:#d33}
 #undoToast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;display:none;z-index:9999;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:70vw}
 #undoToast.show{display:flex}
-#undoToast button{background:#4a90d9;color:#fff;border:none;padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px}
-#undoToast button:hover{background:#3a7bc4}
+#undoToast button{background:#2f6ba8;color:#fff;border:none;padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px}/* 卡 6 自查加料：这颗「撤销」是白字压 #4a90d9 实测 3.34（三档同一个色，气条本身不走主题）→ 同色系加深到 #2f6ba8＝5.54，hover 相应压到 #24598d＝7.27 */
+#undoToast button:hover{background:#24598d}
 .v17-contract{display:flex;align-items:center;gap:10px;background:#f4f8ff;border:1px solid #d6e4ff;border-radius:8px;padding:8px 14px;margin:8px 0}
 .v17-ck{color:#2e7d32;font-weight:700;font-size:14px}
 .v17-nock{color:#c0392b;font-weight:600}
@@ -311,7 +311,7 @@ to{opacity:1}}
 .v17-tg{font-size:12px;font-weight:700;color:#8a7a4a;letter-spacing:1px;margin:0 2px}
 .v17-tsep{width:1px;height:20px;background:#e2dbc7;margin:0 6px}
 .v17-drop{position:relative;display:inline-block}
-.v17-dropmenu{position:absolute;right:0;top:calc(100%+4px);min-width:180px;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);padding:6px;z-index:99;display:none}
+.v17-dropmenu{position:absolute;right:0;top:calc(100%+4px);min-width:180px;max-height:calc(100vh - 16px);overflow:auto;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.12);padding:6px;z-index:99;display:none}
 .v17-dropmenu.v17-drop-open{display:block}
 .v17-dropmenu button{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--ink)}
 .v17-dropmenu button:hover{background:#f4efe3}
@@ -408,7 +408,7 @@ input,select,textarea{font-family:inherit;border-radius:6px}
 .cust .nm{font-weight:600;font-size:14px;font-weight:600;font-size:14px}
 .custsearch{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:6px;padding:2px 6px;background:#fff;margin-bottom:8px;border-radius:var(--v15-radius);border:1px solid var(--v15-border);padding:2px 10px;background:#fff;box-shadow:0 1px 3px rgba(26,35,50,.04)}
 .custsearch input{flex:1;border:none;outline:none;font-size:13px;padding:7px 4px;background:transparent;min-width:0;min-height:32px;font-size:13px}
-.custsearch .cx{color:#bbb;font-size:14px;cursor:pointer;padding:0 5px;color:#b9b3a6}
+.custsearch .cx{color:#bbb;font-size:14px;cursor:pointer;padding:0 5px;color:#756b54}/* B6：这颗 ✕ 原来 #b9b3a6 压白底 2.09（三档同一个色，因为 .custsearch @409 的底写死 #fff，夜档也没盖它）→ #756b54 压白底 5.27。注意 .custsearch 那个白底在夜档是一块「白岛」，那是另一条账，登记在回报里没在这张卡动 */
 .v14-filtrow select{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:7px 4px;font-size:12px;background:#fff;color:#5a5143;border-radius:var(--v15-radius);border:1px solid var(--v15-border);min-height:32px;background:#fff;color:var(--v15-text)}
 .v14-filtrow select:focus{border-color:var(--v15-accent);outline:none;box-shadow:0 0 0 2px rgba(201,169,110,.18)}
 .grhead{cursor:pointer;margin:14px 4px 6px;padding:14px 16px;font-size:16px;font-weight:700;color:#5b4a26;background:#efe9db;border-radius:8px;display:flex;justify-content:space-between;align-items:center;transition:background .15s,color .15s;user-select:none;color:var(--v15-primary);background:var(--v15-card-hover);border:1px solid var(--v15-border)}
@@ -453,7 +453,7 @@ table.calct th{background:#f2efe9;font-size:13px;padding:6px 8px;text-align:cent
 .dgtable td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;border-bottom:1px solid var(--v15-border)}
 .dgtable .price{color:var(--brand-d);font-weight:600;white-space:nowrap;color:var(--v15-accent-dark);font-weight:700}
 table.tot td:first-child{background:#f7f3e9;font-weight:600;width:55%;background:var(--v15-card-hover)}
-table.tot tr.big td{font-size:17px;font-weight:800;color:var(--brand-d);color:var(--v15-accent-dark)}
+table.tot tr.big td{font-size:17px;font-weight:800;color:var(--brand-d);color:#806014}/* B7：暖档大卡上的钱原吃 --v15-accent-dark #a9853f，压 #faf8f3 实测 3.24 → 同色系加深到 #806014（5.49）。冷档 @799、夜档 @796 各有一条强制覆盖压过这条，两档逐像素不变；不动 token 本身是因为它还喂着顶栏按钮渐变 @402 */
 .v14-flt th{background:#f2efe9;padding:5px 6px;border:1px solid var(--line);text-align:center;background:var(--v15-card-hover);color:var(--v15-text)}
 .v14-adj th{background:#f2efe9;font-size:12px;padding:5px 6px;border:1px solid var(--line);background:var(--v15-card-hover);color:var(--v15-text)}
 /* —— 勾选框 / 单选框（≥20px，主色） —— */
@@ -750,8 +750,8 @@ to{opacity:1;transform:none}}
 .v20-fhint{margin-left:auto;font-size:12px;color:#8a8578;}
 /* ========== v22 UI 阶段4：主题/密度/组件（叠加层，不影响旧功能类） ========== */
 :root{--brand:#2f6b4f;--brand-d:#26563f;--brand-soft:#e7efea;--bg:#f7f7f5;--card:#ffffff;--line:#e8e8e4;--ink:#1f2320;--mut:#7a7d78;--ok:#2e7d32;--warn:#c2573d;--accent:#2f6b4f;--accent-soft:#e7efea;--radius:8px;--radius-lg:10px;--shadow-card:0 1px 3px rgba(0,0,0,.04);--font:"Microsoft YaHei UI","Microsoft YaHei","PingFang SC",sans-serif;--v13-brn:#5d4e37;--v13-gld:#c9a96e;--v13-bg:#f5f0e8;/* —— v15 现代轻奢风 完整变量体系 —— */
-  --v15-primary:#1a2332;--v15-primary-light:#2d3a4d;--v15-primary-dark:#0f1620;--v15-accent:#c9a96e;--v15-accent-light:#dbbf8a;--v15-accent-dark:#a9853f;--v15-bg:#f8f6f1;--v15-card:#ffffff;--v15-card-hover:#faf8f3;--v15-text:#2c2c2c;--v15-text-muted:#888;--v15-border:#e5e0d5;--v15-success:#2e7d32;--v15-warning:#e6a23c;--v15-danger:#d32f2f;--v15-radius-sm:6px;--v15-radius:8px;--v15-radius-lg:12px;--v15-radius-xl:16px;--v15-shadow:0 2px 12px rgba(26,35,50,.06);--v15-shadow-lg:0 8px 24px rgba(26,35,50,.12);--v15-topbar-h:60px;--v15-side-w:300px;/* 旧变量映射到新配色（全站换色且不破坏既有 var() 引用） */
-  --brand:var(--v15-primary);--brand-d:var(--v15-accent);--bg:var(--v15-bg);--card:var(--v15-card);--line:var(--v15-border);--ink:var(--v15-text);--mut:var(--v15-text-muted);--ok:var(--v15-success);--warn:var(--v15-warning);--bg:#f3f0e9;--bg2:#ece8de;--panel:#fffdf8;--panel2:#faf7ef;--line:#e5dfd2;--line2:#d8d0bf;--text:#2e2a24;--mut:#8a806c;--brand:#9a6a2a;--brand2:#7c5520;--brand-ink:#fff;--danger:#c0392b;--ok:#2e7d32;--warn:#b08d3e;--shadow:0 8px 28px rgba(90,70,30,.14);--shadow2:0 2px 10px rgba(90,70,30,.10);--radius:12px;--radius2:8px;--pad:16px
+  --v15-primary:#1a2332;--v15-primary-light:#2d3a4d;--v15-primary-dark:#0f1620;--v15-accent:#c9a96e;--v15-accent-light:#dbbf8a;--v15-accent-dark:#a9853f;--v15-bg:#f8f6f1;--v15-card:#ffffff;--v15-card-hover:#faf8f3;--v15-text:#2c2c2c;--v15-text-muted:#706650;--v15-border:#e5e0d5;--v15-success:#2e7d32;--v15-warning:#e6a23c;--v15-danger:#d32f2f;--v15-radius-sm:6px;--v15-radius:8px;--v15-radius-lg:12px;--v15-radius-xl:16px;--v15-shadow:0 2px 12px rgba(26,35,50,.06);--v15-shadow-lg:0 8px 24px rgba(26,35,50,.12);--v15-topbar-h:60px;--v15-side-w:300px;/* 旧变量映射到新配色（全站换色且不破坏既有 var() 引用） */
+  --brand:var(--v15-primary);--brand-d:var(--v15-accent);--bg:var(--v15-bg);--card:var(--v15-card);--line:var(--v15-border);--ink:var(--v15-text);--mut:var(--v15-text-muted);--ok:var(--v15-success);--warn:var(--v15-warning);--bg:#f3f0e9;--bg2:#ece8de;--panel:#fffdf8;--panel2:#faf7ef;--line:#e5dfd2;--line2:#d8d0bf;--text:#2e2a24;--mut:#706650;--brand:#9a6a2a;--brand2:#7c5520;--brand-ink:#fff;--danger:#c0392b;--ok:#2e7d32;--warn:#b08d3e;--shadow:0 8px 28px rgba(90,70,30,.14);--shadow2:0 2px 10px rgba(90,70,30,.10);--radius:12px;--radius2:8px;--pad:16px/* B7（暖档对比度）：暖档两个「次要文字」token 一起加深——--mut #8a806c→#706650（详情/工艺文字 3.64→5.29、界面提示 3.84→5.58），--v15-text-muted #888→#706650（页签 3.49、表单标签 3.49、汇总条小字 3.54、侧栏 3.11，全在 4.98~5.67）。冷档 @759 / 夜档 @772 各自的 --mut 不动，那两档本来就是从 var(--mut) 映射 --v15-text-muted 的，逐像素不变 */
 /* ===== V31 第 1 层 token ===== */
 --s1:8px;--s2:16px;--s3:24px;--s4:32px;--f1:13px;--f2:14px;--f3:15px;--f4:18px;--f5:22px;--r1:6px;--r2:8px;--r3:10px;--ctl-h:42px;--row-h:44px;--tap-h:36px;/* V32-4：--tap-h=可点控件热区下限，--ctl-h=可打字控件下限 */--tab-h:40px;--focus:rgba(47,107,79,.22);--sh1:0 2px 10px rgba(93,78,55,.08);--f-body:14px;--card-pad:18px 20px;--fld-pad:0;--btn-fs:14px;--btn-pad:8px 18px;--btn-minh:36px;--cell-pad:6px 6px;--th-pad:6px 5px;--th-fs:12.5px;--td-fs:13px;
 }
@@ -793,6 +793,12 @@ html[data-theme="night"] table.q td,html[data-theme="night"] table.mat td,html[d
 html[data-theme="night"] table.q tbody tr:hover td,html[data-theme="night"] table.q tr:hover td{background:var(--panel2)!important;color:var(--text)!important}
 html[data-theme="night"] input:not([type=checkbox]):not([type=radio]):not([type=file]),html[data-theme="night"] textarea,html[data-theme="night"] select{background:var(--panel2)!important;color:var(--text)!important;border-color:var(--line)!important}
 html[data-theme="night"] .totalcard,html[data-theme="night"] table.tot,html[data-theme="night"] table.tot td{background:var(--panel)!important;color:var(--text)!important}
+/* B6（夜档大卡）：夜间覆盖块把 .totalcard 的底改成了深灰，但大卡上「工 程 总 造 价」标题（@94 写死 #5b4a26）
+   和落款行（@97 写死 #3d3a33）自己也带写死的深色，压在深底上实测只有 1.82 / 1.37 —— 夜里等于看不见。
+   这里只在夜档给它们换回本档语言：标题走夜档金（同 .card h4 @786 的处理，7.38），落款走本档次要文字色（5.97）。
+   不必挂强制标记：html[data-theme] + 两级类名的权重本来就压得过 @94/@97 那两条单类规则。暖/冷两档这条选择器不匹配，逐像素不变。 */
+html[data-theme="night"] .totalcard .ttl{color:var(--v15-primary)}
+html[data-theme="night"] .totalcard .sign{color:var(--mut)}
 html[data-theme="night"] table.q tr.sum td,html[data-theme="night"] table.q td[class$="-amt"],html[data-theme="night"] table.tot tr.big td{color:var(--v15-primary)!important;background:var(--panel2)!important}
 html[data-theme="night"] .v33-status{background:var(--panel2)!important;color:var(--text)!important}
 html[data-theme="cool"] table.q td,html[data-theme="cool"] table.mat td{color:var(--text)!important}
@@ -859,10 +865,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14p
 .audit-badge.audit-warn{background:#e8a33d;color:#fff}
 tr.audit-row td{border-color:#f0c9c9!important}
 /* V32-2③(B-33)：12 个分区名挤在一行，右侧被裁成「主材二、主…」。改成可换行，不出横向滚动条。 */
-.pnav{display:flex;flex-wrap:wrap;gap:6px;padding:8px 2px;margin-bottom:10px;background:#fff;border:1px solid var(--line);border-radius:8px}
-.pnav-anchor{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--ink);padding:5px 12px;border-radius:14px;cursor:pointer;font-size:12.5px;white-space:nowrap;min-height:var(--tap-h)}/* V32-4(B-36)：锚点 ≈27→36 */
+.pnav{display:flex;flex-wrap:wrap;gap:6px;padding:8px 2px;margin-bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px}/* B6：同上，这条栏的底也写死过 #fff（暖/冷档 --panel 就是 ≈ 白，不变；夜档原来是白条托深底药丸，看着像坏了一块） */
+.pnav-anchor{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 12px;border-radius:14px;cursor:pointer;font-size:12.5px;white-space:nowrap;min-height:var(--tap-h)}/* V32-4(B-36)：锚点 ≈27→36 */ /* B6：原来背景写死 #fff，暖/冷两档 --panel 本来就 ≈ 白（#fffdf8/#ffffff）所以逐像素看不出，夜档则是浅字压白底 21 个分区锚点全成 1.2 —— 改吃 --panel 后 12.91 */
 .pnav-anchor:hover{border-color:var(--brand);color:var(--brand-d)}
-.pnav-anchor.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
+.pnav-anchor.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);font-weight:700}/* B6：选中那颗药丸原来是白字压金底（夜档 2.11，与顶部「只看一行/全部展开」同一病），改吃 --brand-ink → 夜档 #1a1508 压金底 8.62；暖/冷两档该 token 本就是 #fff，逐像素不变 */
 .rowmenu{position:relative;display:inline-block;margin-left:2px}
 .rowmenu-open{position:absolute;right:0;top:100%;z-index:40;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.15);padding:4px;display:none;min-width:160px;margin-top:2px}
 .rowmenu-open button{display:block;width:100%;text-align:left;border:none;background:none;padding:7px 10px;font-size:13px;cursor:pointer;border-radius:4px;white-space:nowrap}
@@ -1017,8 +1023,11 @@ table.q td.qcell-g textarea,table.q td.qcell-h textarea{white-space:pre-wrap!imp
   .v32-txt{white-space:pre-wrap;word-break:break-word;overflow:visible;line-height:1.5;min-height:0;font-size:1em;padding:1px 0}
   table.q tr.sum{page-break-before:avoid}
 }
-@media screen and (min-width:641px){table.q tr.phead td{position:sticky;top:var(--v33-h1,54px);z-index:8}
-table.q th{position:sticky;top:var(--v33-h2,96px);z-index:7}
+/* V34-B1：实测 sticky 的参照盒是 main.wb-main 自己的滚动框（它 overflow:auto 但从不滚动），
+   所以 top 值等于把表头整层往下推的固定位移：54 把 phead+th 压到分区首行上（首行永远命中 TH）。
+   冻结表头保留，改成贴顶 0 与「分区头高度」两层，位移归零。 */
+@media screen and (min-width:641px){table.q tr.phead td{position:sticky;top:var(--v33-h1,0px);z-index:8}
+table.q th{position:sticky;top:var(--v33-h2,80px);z-index:7}
 table.q tbody td{scroll-margin-top:116px;scroll-margin-bottom:10px}}
 /* V33-2③：说明格悬停浮起白框那条规则已删，看全文走顶部总开关或单击这一行 */
 @media (min-width:1400px){#side{width:276px}}
@@ -1105,7 +1114,7 @@ tr:hover .v31-ell,tr:focus-within .v31-ell,tr.v31-hot .v31-ell,.v31-ell.on,.v31-
 .v31-help:hover{border-color:var(--brand);color:var(--brand)}
 .v31-folds{display:none;margin-top:8px}
 .v31-folds.on{display:block}
-.v31-badge{background:#c2573d;color:#fff;border-radius:9px;padding:0 7px;margin-left:4px;font-size:12px;font-weight:700}/* V32-11④ 接上核对徽标，取值照搬原行内样式，不改观感 */
+.v31-badge{background:#b84e34;color:#fff;border-radius:9px;padding:0 7px;margin-left:4px;font-size:12px;font-weight:700}/* B6：角标白字压 #c2573d 实测 4.44，差 0.06 也算不达标 → 同色系赤陶压深一档 #b84e34 = 5.03（三档同一个底，本来就不走主题） *//* V32-11④ 接上核对徽标，取值照搬原行内样式，不改观感 */
 .v31-mut{color:var(--mut)}
 .v31-flag{font-size:var(--f1);color:var(--mut);font-variant-numeric:tabular-nums}
 .v31-undo{margin-left:auto}
@@ -1114,7 +1123,10 @@ tr:hover .v31-ell,tr:focus-within .v31-ell,tr.v31-hot .v31-ell,.v31-ell.on,.v31-
 /* V33-4：选中框右下角的填充柄、状态栏、定位命中、历史列表 */
 .v33-handle{position:absolute;right:-4px;bottom:-4px;width:9px;height:9px;background:var(--brand);border:1px solid #fff;border-radius:2px;cursor:crosshair;z-index:6}
 .v33-fillto{outline:2px dashed var(--brand);outline-offset:-2px}
-.v33-status{position:sticky;bottom:0;display:flex;align-items:center;gap:12px;min-height:var(--tap-h);padding:0 12px;margin-top:8px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r2);font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums;z-index:5}
+.v33-status{position:fixed;bottom:8px;left:0;display:flex;align-items:center;gap:12px;min-height:var(--tap-h);padding:0 12px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r2);font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums;z-index:9;box-shadow:var(--sh1)}/* B9：原来写 sticky;bottom:0 —— 但最近的滚动盒是 main.wb-main，它 overflow:auto 而从不滚动（实测 sh==ch==9576），sticky 等于没钉：选完 3 行后状态栏 rect.top=7972、视口只有 749，按钮点了个空。改 fixed + v33Status() 里按 #panel 现宽量一次 left/width。z-index 必须高于冻结表头（phead td 8 / th 7），否则分区头恰好落在视口下沿时那颗按钮被 ⋮ 盖住，实测 elementFromPoint 返回 BUTTON.btn mini。 */
+.v33-status-t{flex:1 1 auto;min-width:0}
+.v33-sbatch{margin-left:auto;flex:0 0 auto;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);border-radius:var(--r1);min-height:var(--tap-h);padding:0 12px;font-size:13px;cursor:pointer;white-space:nowrap}
+.v33-sbatch:hover{background:var(--brand2);border-color:var(--brand2)}
 .v33-hit{background:#fff3c4!important}
 .v33-find{min-height:var(--tap-h);width:150px;font-size:13px}
 .v33-hislist{position:fixed;max-height:60vh;overflow:auto;z-index:9998;min-width:340px}
@@ -2346,7 +2358,22 @@ function toggleDrop(ev,btn){
   var dd=btn?btn.parentNode.querySelector('.v17-dropmenu'):null;
   if(!dd)return;
   var open=dd.classList.toggle('v17-drop-open');
+  if(open)v17DropFit(dd);
   if(btn)btn.textContent=open?'更多 ▴':'更多 ▾';
+}
+function v17DropFit(dd){
+  /* B9：14 项一路往下摊，最后一项实测落在 top=759 而视口只有 749 —— 够不着。
+     先量「往下还剩多少地方」放不下、而往上放得下，就整层向上翻；两条都不够就把高度压进视口内滚动。 */
+  var vh=window.innerHeight||document.documentElement.clientHeight;
+  var hr=dd.parentElement.getBoundingClientRect();
+  var down=vh-hr.bottom-12,up=hr.top-12;
+  var need=Math.min(dd.scrollHeight+12,vh-16);
+  var flip=down<need&&up>=need;
+  dd.classList.toggle('v17-drop-up',flip);
+  dd.style.maxHeight=Math.max(160,Math.min(Math.floor(flip?up:down),vh-16))+'px';
+  /* 翻向只能直接算 top：绝对定位盒在 height:auto 且 top:auto 时，bottom 是过度约束会被浏览器忽略（实测写 top:auto+bottom 翻不动） */
+  dd.style.top=flip?(-(dd.offsetHeight+4))+'px':'';
+  dd.scrollTop=0;
 }
 document.addEventListener('click',function(e){
   var o=e.target&&e.target.closest?e.target.closest('.v17-drop'):null;
@@ -2657,21 +2684,21 @@ function qHtml(c){
     +'</div>';
 
   h+='<div class="totalcard"><div class="ttl">工 程 总 造 价</div><table class="tot">'
-    +'<tr><td>基装工程合计</td><td>¥'+fmt(c._sb)+'</td></tr>'
-    +'<tr><td>主材（含定制）合计</td><td>¥'+fmt(c._sm)+'</td></tr>'
-    +'<tr><td>综合费用</td><td>¥'+fmt(c._sg)+'</td></tr>'
-    +'<tr class="big"><td>工程总造价（小写）</td><td>¥'+fmtY(c._total)+'</td></tr>'
-    +'<tr class="big"><td>工程总造价（大写）</td><td>'+rmbUpper(c._total)+'</td></tr>'
-    +'<tr><td>已确认增项（+）</td><td>¥'+fmtY(at.confirmed)+'</td></tr>'
-    +'<tr><td>待确认增项（暂不计入）</td><td>¥'+fmtY(at.pending)+'</td></tr>'
-    +'<tr class="big"><td>应付总价（含已确认增项）</td><td>¥'+fmtY(c._total+at.confirmed)+'</td></tr>'
+    +'<tr><td>基装工程合计</td><td id="tc-sb">¥'+fmt(c._sb)+'</td></tr>'
+    +'<tr><td>主材（含定制）合计</td><td id="tc-sm">¥'+fmt(c._sm)+'</td></tr>'
+    +'<tr><td>综合费用</td><td id="tc-sg">¥'+fmt(c._sg)+'</td></tr>'
+    +'<tr class="big"><td>工程总造价（小写）</td><td id="tc-total">¥'+fmtY(c._total)+'</td></tr>'
+    +'<tr class="big"><td>工程总造价（大写）</td><td id="tc-total-cn">'+rmbUpper(c._total)+'</td></tr>'
+    +'<tr><td>已确认增项（+）</td><td id="tc-addon-c">¥'+fmtY(at.confirmed)+'</td></tr>'
+    +'<tr><td>待确认增项（暂不计入）</td><td id="tc-addon-p">¥'+fmtY(at.pending)+'</td></tr>'
+    +'<tr class="big"><td>应付总价（含已确认增项）</td><td id="tc-pay">¥'+fmtY(c._total+at.confirmed)+'</td></tr>'
     +'</table>'
     +'<div class="sign">业主签字：＿＿＿＿＿＿　设计师签字：＿＿＿＿＿＿　设计部负责人：＿＿＿＿＿＿　审核员签字：＿＿＿＿＿＿　总经理签字：＿＿＿＿＿＿　日期：＿＿＿＿＿＿</div>'
     +'</div>';
   h+=addonsHtml(c);
   if(LOCK){h+='</div>';}
   h+=v33SettleHtml(c);
-  h+='<div class="v33-status" id="v33Status">选中区域后，这里显示合计</div>';
+  h+='<div class="v33-status noprint" id="v33Status">选中区域后，这里显示合计</div>';/* B9：状态栏改 fixed 后必须挂 noprint —— 打印预览层也是 qHtml() 生成的，fixed 会逐页重印（实测 11 页每页一行「选中区域后，这里显示合计」，基线只有第 10 页一行） */
   h+='<div class="card note"><h4>备注（优惠 / 赠送等说明）</h4><textarea class="v32-remark" rows="2" style="width:100%;box-sizing:border-box" oninput="onRemark(this)"'+(LOCK?' disabled':'')+'>'+esc(c.remark||'')+'</textarea></div>';
   h+='<div class="card note">'+DISCLAIMER+'</div>';
   return h;
@@ -2722,10 +2749,13 @@ function cellApply(el){
   var c=cur();if(!c)return;
   v32CellHist(el);
   var sec=el.getAttribute('data-sec'),pi=+(el.getAttribute('data-pi')||0),ri=+(el.getAttribute('data-ri')||0),key=el.getAttribute('data-key');
+  /* B9：原来不分 key 一律 parseQ —— 单价格走 parseQ 会把 'area5' 这类保留字清成 0，公式引用出来的单价也就此算错；
+     且 qLocalUpdate 少传 sec，快路径 v33AmtFast 进不去，连选后改价分区小计不跟着刷。 */
+  var v=(key==='p')?parseP(el.value):parseQ(el.value);
   try{
-    if(sec==='base'&&c.base[pi]&&c.base[pi].rows[ri]){c.base[pi].rows[ri][key]=parseQ(el.value);qLocalUpdate(c,pi,ri);}
-    else if(sec==='mate'&&c.mate[pi]&&c.mate[pi].rows[ri]){c.mate[pi].rows[ri][key]=parseQ(el.value);qLocalUpdate(c,pi,ri);}
-    else if(sec==='gather'&&c.gather[ri]){c.gather[ri][key]=parseQ(el.value);gLocalUpdate(c,ri);}
+    if(sec==='base'&&c.base[pi]&&c.base[pi].rows[ri]){c.base[pi].rows[ri][key]=v;qLocalUpdate(c,pi,ri,'base');}
+    else if(sec==='mate'&&c.mate[pi]&&c.mate[pi].rows[ri]){c.mate[pi].rows[ri][key]=v;qLocalUpdate(c,pi,ri,'mate');}
+    else if(sec==='gather'&&c.gather[ri]){c.gather[ri][key]=v;gLocalUpdate(c,ri);}
   }catch(e){}
 }
 document.addEventListener('mousedown',function(ev){
@@ -2772,6 +2802,13 @@ function v33AmtFast(c,sec,pi,ri){
     var t5=document.getElementById('t-total');if(t5)t5.textContent='¥'+fmtY(c._total);
     var t6=document.getElementById('topTotal');if(t6)t6.textContent='¥'+fmtY(c._total);
     var t7=document.getElementById('t-total-cn');if(t7)t7.textContent=rmbUpper(c._total);
+    /* B14：底部「工 程 总 造 价」大卡那八行以前一个 id 都没有，两条刷新路都碰不到它 → 同一屏两个总额。
+       这里补上写入点，数字仍取 recalc 算好的 c._sb/_sm/_sg/_total 与 addonTotals 的增项，只写文本不动金额。 */
+    var ad=addonTotals(c);
+    var wc=function(k,v){var x=document.getElementById(k);if(x)x.textContent=v;};
+    wc('tc-sb','¥'+fmt(c._sb));wc('tc-sm','¥'+fmt(c._sm));wc('tc-sg','¥'+fmt(c._sg));
+    wc('tc-total','¥'+fmtY(c._total));wc('tc-total-cn',rmbUpper(c._total));
+    wc('tc-addon-c','¥'+fmtY(ad.confirmed));wc('tc-addon-p','¥'+fmtY(ad.pending));wc('tc-pay','¥'+fmtY(c._total+ad.confirmed));
     return true;
   }catch(e){return false;}
 }
@@ -2803,9 +2840,15 @@ function updateAllAmts(c){
   e=document.getElementById('t-mate');if(e)e.textContent=fmt(c._sm);
   e=document.getElementById('t-total');if(e)e.textContent=fmtY(c._total);
   e=document.getElementById('t-total-cn');if(e)e.textContent=rmbUpper(c._total);
+  e=document.getElementById('topTotal');if(e)e.textContent='¥'+fmtY(c._total);/* B14 同族：顶部「总报价」药丸只有快路径写它，走慢路径改完价实测停在旧数（¥39,848 vs 真值 42,711） */
   var at=addonTotals(c);
   e=document.getElementById('v14-total-addon');if(e)e.textContent='+¥'+fmtY(at.confirmed);
   e=document.getElementById('v14-pending-tip');if(e){e.style.display=at.pending>0?'':'none';var vd=e.querySelector('.v');if(vd)vd.textContent='¥'+fmtY(at.pending);}
+  /* B14：底部「工 程 总 造 价」大卡八行 —— 与 v33AmtFast 里同一组写入，两条刷新路都要覆盖到，否则慢路径刷完大卡仍是旧数 */
+  var wc=function(k,v){var x=document.getElementById(k);if(x)x.textContent=v;};
+  wc('tc-sb','¥'+fmt(c._sb));wc('tc-sm','¥'+fmt(c._sm));wc('tc-sg','¥'+fmt(c._sg));
+  wc('tc-total','¥'+fmtY(c._total));wc('tc-total-cn',rmbUpper(c._total));
+  wc('tc-addon-c','¥'+fmtY(at.confirmed));wc('tc-addon-p','¥'+fmtY(at.pending));wc('tc-pay','¥'+fmtY(c._total+at.confirmed));
 }
 function onGQ(el,gi){var c=cur();v32CellHist(el);c.gather[gi].q=parseQ(el.value);gLocalUpdate(c,gi)}
 function onGP(el,gi){var c=cur();v32CellHist(el);c.gather[gi].p=parseP(el.value);gLocalUpdate(c,gi)}
@@ -10604,7 +10647,40 @@ function v33Paint(hot) {
   } catch (e) { }
   v33AfterSelect();
 }
-function v33Set2(a, b) { v33Rect(a, b); v33Paint(); }
+function v33Set2(a, b) {
+  /* 报价表一个分区就是一张独立 <table>，v33Rect 只会算单张表里的矩形：锚点和被点格不在同一张表时
+     它把两端塌回一格，跨分区连选就此失效。这里按文档顺序把中间各表的同一段列接起来——
+     语义＝从锚点那格「顺着读」到被点那格：锚点表从锚点行往下、中间表整表、目标表到目标行为止。 */
+  var pa = (a && b && a !== b) ? v33Pos(a) : null;
+  var pb = pa ? v33Pos(b) : null;
+  if (pa && pb && pa.tbl !== pb.tbl) {
+    var host = (pa.tbl.closest ? pa.tbl.closest('#panel,#side,#modalHost') : null) || document;
+    var ts = [].slice.call(host.querySelectorAll('table'));
+    var ia = ts.indexOf(pa.tbl), ib = ts.indexOf(pb.tbl);
+    if (ia >= 0 && ib >= 0) {
+      var c1 = Math.min(pa.c, pb.c), c2 = Math.max(pa.c, pb.c);
+      var lo = Math.min(ia, ib), hi = Math.max(ia, ib), down = ib > ia, span = [];
+      for (var t = lo; t <= hi; t++) {
+        var trows = v33RowsOf(ts[t]), r1 = 0, r2 = trows.length - 1;
+        if (t === ia) { if (down) r1 = pa.r; else r2 = pa.r; }
+        else if (t === ib) { if (down) r2 = pb.r; else r1 = pb.r; }
+        for (var r = r1; r <= r2; r++) {
+          var cs = trows[r] ? trows[r].cells : null;
+          if (!cs) continue;
+          /* 逐列按位取，缺列的行（分区名行、合计行）跳过——不拿 v33At 的钳位值凑数 */
+          for (var c = c1; c <= c2; c++) if (cs[c]) span.push(cs[c]);
+        }
+      }
+      if (span.length) {
+        V33S.list = span;
+        V33S.one = b;                    /* 移动端落在被 Shift 点的那格，click 处理器才不会再把它改回单选 */
+        v33Paint();
+        return;
+      }
+    }
+  }
+  v33Rect(a, b); v33Paint();
+}
 function v33Select(el, how) {
   if (!v33Typing(el)) { V33S.list = []; V33S.one = null; V33S.anchor = null; v33ClearPaint(); v33AfterSelect(); return; }
   if (how === 'add') {
@@ -10617,7 +10693,16 @@ function v33Select(el, how) {
     v33AfterSelect();
     return;
   }
-  if (how === 'range' && V33S.anchor) { v33Set2(V33S.anchor, el); return; }
+  if (how === 'range') {
+    /* 两次点击之间锚点不许被清：提交/粘贴引起重画会把手里那个节点换掉，按格子坐标找回新节点再连；
+       找回失败也绝不清空锚点退回单选（那样 Shift 就等于白按）。 */
+    var anc = V33S.anchor || V33S.one;
+    if (anc && !document.contains(anc)) {
+      var reb = v33同格(anc);
+      if (reb) { anc = reb; if (!document.contains(V33S.one)) V33S.one = reb; }
+    }
+    if (anc) { V33S.anchor = anc; v33Set2(anc, el); return; }
+  }
   V33S.anchor = el;
   v33Set2(el, null);
 }
@@ -10735,6 +10820,7 @@ document.addEventListener('mousedown', function (ev) {
   var t = ev.target;
   if (!t || !t.closest) return;
   if (t.closest && t.closest('.v33-handle')) return;
+  if (t.closest && t.closest('.v33-sbatch')) return;  /* B9：状态栏那颗按钮是选区的延伸，点它不许把选区清了（清了 v33BatchSel 就拿不到行） */
   if (!v33Typing(t) || !v33In(t)) {
     if (V33S.edit && !V33S.edit.contains(t)) v33Stop();
     if (!t.closest('input,textarea')) { v33Reset(); V33S.one = null; V33S.anchor = null; v33AfterSelect(); }
@@ -10744,7 +10830,8 @@ document.addEventListener('mousedown', function (ev) {
   try { if (typeof _cellEdit !== 'undefined' && _cellEdit && String(_cellEdit.el.value || '').charAt(0) === '=') return; } catch (e) { }
   ev.preventDefault();                                          /* 单击＝选中（不聚焦，所以不算进编辑） */
   if (V33S.edit && V33S.edit !== t) v33Stop();
-  v33Select(t, t === V33S.one && V33S.list.length > 1 ? 'add' : (ev.shiftKey ? 'range' : (ev.ctrlKey || ev.metaKey ? 'add' : 'single')));
+  /* shiftKey 排在最前：按住 Shift 就是连选，哪怕点的正好是当前多块选区里的那一格 */
+  v33Select(t, ev.shiftKey ? 'range' : (t === V33S.one && V33S.list.length > 1 ? 'add' : (ev.ctrlKey || ev.metaKey ? 'add' : 'single')));
   V33S.dragging = true;
 }, true);
 document.addEventListener('mouseup', function () { V33S.dragging = false; }, true);
@@ -10852,13 +10939,18 @@ function v33RuleSeg(process) {
 function v33CraftOf(code) { return v33CraftSeg((v33DingeByCode(code) || {}).process); }
 function v33RuleOf(code) { return v33RuleSeg((v33DingeByCode(code) || {}).process); }
 /* 模板里那份原始 h（用来判断「这行的说明用户有没有手改过」） */
+var _v34TplItem = null;            /* V34 卡 4：同一趟遍历顺手把模板项本身留下，老单要靠它取回定额编号 */
 function v33TplHOf(nm) {
   if (!_v33TplH) {
     _v33TplH = {};
+    _v34TplItem = {};
     try {
       (ROOMTPL_SEED || []).forEach(function (sp) {
         ['base', 'mate'].forEach(function (sd) {
-          (sp[sd] || []).forEach(function (it) { if (it && it.n && _v33TplH[it.n] == null) _v33TplH[it.n] = String(it.h || ''); });
+          (sp[sd] || []).forEach(function (it) {
+            if (!it || !it.n) return;
+            if (_v33TplH[it.n] == null) { _v33TplH[it.n] = String(it.h || ''); _v34TplItem[String(it.n).trim()] = it; }
+          });
         });
       });
     } catch (e) { }
@@ -10866,34 +10958,187 @@ function v33TplHOf(nm) {
   var k = String(nm || '').trim();
   return _v33TplH[k];
 }
+function v34TplItemOf(nm) {
+  v33TplHOf('');                   /* 只为把两张表建出来 */
+  return (_v34TplItem || {})[String(nm || '').trim()] || null;
+}
 /* 生成新行时该填哪份工艺说明：认出定额就用定额的工艺段，认不出保留模板原句 */
 function v33RowH(it) {
   var d = v33CraftOfRow({ n: it && it.n, u: it && it.u, dingeId: it && it.dingeId });
   return (d && d.craft) || String((it && it.h) || '');
 }
-/* 老单子改一处：只把「和模板原文一模一样（＝没手改过）」或空白的行换成定额工艺段 */
-function v33MigrateCraft(c) {
-  var ch = 0, blank = 0, bind = 0, hit = 0;
-  if (!c) return { 改了: 0, 空白: 0, 绑定: 0, 认出: 0 };
+/* ===== V34 卡 4（B3）：v32 那批旧工艺文案白名单 =====
+   key＝现在的模板项名，value＝该项在 v32 里存过的旧文案。老单行存的是改名换绑**之前**的短句，
+   只比「当前模板文案」两头对不上，所以一行也升不了级 —— 这张表就是把旧文案认出来的依据。
+   由 work/v34_legacy_table.py 从 work/v34_legacy_h.json（审查方生成）原样转出，不许手改。 */
+var V34_LEGACY_H = {
+  "300*600 墙砖铺贴": ["400*800墙砖瓷砖胶铺贴，空方实算", "瓷砖胶铺贴，空方实算"],
+  "400*800 地砖上墙": ["400*800地砖上墙工艺"],
+  "800*800 地砖铺贴": ["800*800大地砖水泥砂浆铺贴", "强辉/萨米特/欧神诺/冠珠", "800*800地砖水泥砂浆铺贴，含人工辅料", "水泥砂浆铺贴", "地砖铺贴或找平", "环氧或自流平", "户外地砖铺贴", "环氧地坪/自流平"],
+  "一底两面（单刷漆9块一平方）": ["都芳乳胶漆，底漆一遍面漆两遍", "都芳乳胶漆"],
+  "不锈钢水槽+龙头": ["枪灰水盆+枪灰抽拉龙头"],
+  "中央空调检修口": ["按空调厂家尺寸开进出风口"],
+  "入户门套": ["实木单包套"],
+  "刷漆": ["一底两面"],
+  "包下水管单管升级双管、U型管差价": ["轻体砖砌筑/钛镁合金包立管，预留检修口", "轻体砖砌筑，预留检修口", "有下水才选"],
+  "包烟道": ["轻体砖砌筑包烟道管"],
+  "合金门/三联动推拉门": ["海洋门业钛镁合金"],
+  "吊柜": ["ENF级板材"],
+  "地下室防水(全墙)": ["伟星咖乐防水"],
+  "地漏": ["干湿分离可能2个", "有排水才有"],
+  "地面回填": ["地砖或找平"],
+  "客餐厅灯具": ["主灯+筒灯（客户自购或代购）"],
+  "封窗": ["断桥铝65型材，含开启扇"],
+  "平开合金门": ["海洋门业钛镁合金，含门套锁具"],
+  "批刮墙面腻子": ["303/都芳腻子刮两遍打磨平整", "刮两遍打磨", "批刮两遍"],
+  "木门": ["实木复合门"],
+  "木门(含锁/吸/合页)": ["鑫佳源实木复合门，标准2.1高*0.9宽"],
+  "木门加高·实木复合": ["2.4米以内"],
+  "柔性防水": ["伟星咖乐防水滚涂两遍，含基层处理"],
+  "楼梯踏步铺贴": ["踏步砖铺贴，每踏≤1.2米"],
+  "楼梯踢脚线": ["实木踢脚线"],
+  "橱柜地柜": ["ENF级板材，包含台面"],
+  "浴室柜+马桶+花洒": ["浪鲸/东芝/恒洁（或客户自购）"],
+  "浴霸/风暖": ["盼盼300*600集成模块"],
+  "玻璃隔断": ["按设计（客户自选）"],
+  "电视/沙发背景墙、客厅造型、弧形门洞": ["按设计方案议价"],
+  "石膏板叠级线": ["两层龙牌石膏板，每增一层加14元", "两层龙牌石膏板"],
+  "碗拉/调味拉篮": ["橱柜碗拉"],
+  "窗帘": ["成品窗帘（客户自选）", "成品窗帘"],
+  "窗帘盒": ["暗藏窗帘盒，预留20公分顶板", "暗藏窗帘盒"],
+  "衣帽间衣柜+书桌（进定制区）": ["ENF级板材投影面积"],
+  "衣柜（进定制区）": ["ENF级板材投影面积，含抽屉悍高五金"],
+  "踢脚线": ["实木/合金踢脚线"],
+  "轻钢龙骨吊平顶": ["龙牌石膏板+国标轻钢龙骨框架"],
+  "轻钢龙骨边吊": ["龙牌石膏板+国标轻钢龙骨，含挖筒灯孔"],
+  "边吊/平顶": ["龙牌石膏板+轻钢龙骨"],
+  "铝扣板吊顶": ["花旗300*600铝扣板4mm厚"],
+  "铝扣板天花": ["花旗300*600铝扣板4mm厚"],
+  "防水": ["有洗衣/用水功能才做"],
+  "顶面刷漆/腻子": ["封窗贴砖则墙砖"]
+};
+var V34_CRAFT_VER = 'v34';
+var _v34LegacyRev = null, _v34KeyCraft = null;
+/* 旧文案 → 命中它的模板项名（一条旧文案对上两个模板项＝认不准） */
+function v34LegacyIdx() {
+  if (_v34LegacyRev) return _v34LegacyRev;
+  _v34LegacyRev = {};
+  Object.keys(V34_LEGACY_H).forEach(function (k) {
+    (V34_LEGACY_H[k] || []).forEach(function (h) { (_v34LegacyRev[h] = _v34LegacyRev[h] || []).push(k); });
+  });
+  return _v34LegacyRev;
+}
+function v34IsLegacyH(h) {
+  h = String(h == null ? '' : h).trim();
+  return !!h && !!v34LegacyIdx()[h];
+}
+/* 模板项名 → 它那份完整工艺：先取模板项自己绑的定额编号，再退到「同名唯一」那一条 */
+function v34CraftOfTplName(nm) {
+  if (!_v34KeyCraft) _v34KeyCraft = {};
+  if (nm in _v34KeyCraft) return _v34KeyCraft[nm];
+  var out = null;
+  var it = v34TplItemOf(nm), code = it && it.dingeId ? String(it.dingeId).trim() : '';
+  if (code) {
+    var d = v33DingeByCode(code), craft = d ? v33CraftSeg(d.process) : '';
+    if (craft) out = { code: code, craft: craft, rule: d ? v33RuleSeg(d.process) : '', by: '模板项绑的定额', strict: 1 };
+  }
+  if (!out) {
+    var ix = v33CraftIdx(), lst = ix.exact[String(nm || '').trim()];
+    if (!lst || lst.length !== 1) lst = ix.norm[v33NormName(nm)];
+    if (lst && lst.length === 1 && lst[0].craft) out = { code: lst[0].code, craft: lst[0].craft, rule: lst[0].rule, by: '同名定额', strict: 1 };
+  }
+  _v34KeyCraft[nm] = out;
+  return out;
+}
+/* B3 主通道：这一行的旧文案在白名单里唯一对上一个查得到完整工艺的模板项 → 该换成哪份 */
+function v34LegacyCraftOf(r) {
+  var h = String(r && r.h == null ? '' : r.h).trim();
+  var keys = h ? (v34LegacyIdx()[h] || []) : [];
+  if (!keys.length) return null;
+  var found = null, seen = {};
+  for (var i = 0; i < keys.length; i++) {
+    var e = v34CraftOfTplName(keys[i]);
+    if (!e || seen[e.code]) continue;
+    seen[e.code] = 1;
+    if (found) return null;                    /* 对到两条不同定额 → 认不准，宁可不动 */
+    found = e;
+  }
+  return found;
+}
+/* ④「这一单跑过了」的盖章：盖在单子上（不进快照，撤销不会把它抹掉），
+   并留一份「行名指纹」——行集换了（换单、补行、老备份覆盖回来）就得重看一遍，
+   只改工艺文案不换行名，指纹不变，所以第二次打开不会重跑。 */
+function v34CraftSig(c) {
+  var n = 0, g = 5381;
   ['base', 'mate'].forEach(function (sec) {
     (c[sec] || []).forEach(function (part) {
       (part.rows || []).forEach(function (r) {
         if (!r) return;
-        if (!r.dingeId) {
-          var cd = v33BindByName(r);
-          if (cd) { r.dingeId = cd; bind++; }
-        }
-        var d = v33CraftOfRow(r);
-        if (!d || !d.craft) return;
-        hit++;
-        if (String(r.h || '') === d.craft) return;
-        var th = v33TplHOf(r.n);
-        if (!String(r.h || '').trim()) { r.h = d.craft; ch++; blank++; return; }
-        if (th != null && String(r.h) === th) { r.h = d.craft; ch++; }
+        n++;
+        var s = String(r.n || '');
+        for (var i = 0; i < s.length; i++) g = (g * 33 + s.charCodeAt(i)) % 2147483647;
       });
     });
   });
-  return { 改了: ch, 空白: blank, 绑定: bind, 认出: hit };
+  return n + ':' + g;
+}
+/* 老单子打开时把工艺说明换成定额那份（V34 卡 4）：
+   ① 认得改名的旧文案（白名单）② 动手前整单进一次撤销栈，Ctrl+Z 退得回来
+   ③ 手改过的行一律不动（连定额编号都不绑）④ 一单一版只跑一次 */
+function v33MigrateCraft(c) {
+  var rep = { 改了: 0, 空白: 0, 绑定: 0, 认出: 0, 手改: 0, 查不到做法: 0, 已是新版: 0 };
+  if (!c) return rep;
+  var sig = v34CraftSig(c);
+  if (c._v34craftVer === V34_CRAFT_VER && c._v34craftSig === sig) { rep.已升级过 = 1; return rep; }
+  try { if (c !== cur()) { rep.没动手 = '只升当前打开的这一单'; return rep; } } catch (e) { return rep; }
+  var edits = [];
+  ['base', 'mate'].forEach(function (sec) {
+    (c[sec] || []).forEach(function (part) {
+      (part.rows || []).forEach(function (r) {
+        if (!r) return;
+        var h = String(r.h == null ? '' : r.h);
+        /* 先查这份行该印哪段工艺（只查不落笔）：已经印着完整做法的行不是「手改」，别冤枉他 */
+        var bind = r.dingeId ? '' : String(v33BindByName(r) || '');
+        var d = null;
+        if (bind) {
+          var bd = v33DingeByCode(bind);
+          if (bd && v33CraftSeg(bd.process)) d = { code: bind, craft: v33CraftSeg(bd.process), rule: v33RuleSeg(bd.process), by: '同名绑定', strict: 1 };
+        }
+        if (!d) d = v33CraftOfRow(r);
+        if (!d || !d.craft) d = v34LegacyCraftOf(r);
+        if (d && d.craft && h === d.craft) {
+          rep.已是新版++;
+          if (bind) { rep.绑定++; edits.push({ r: r, h: null, id: bind }); }
+          return;
+        }
+        var th = v33TplHOf(r.n);
+        if (h.trim() && !(th != null && h === th) && !v34IsLegacyH(h)) { rep.手改++; return; }   /* ③ 手写的：一个字都不碰，连编号都不绑 */
+        if (!d || !d.craft) { rep.查不到做法++; return; }
+        rep.认出++;
+        if (!h.trim()) rep.空白++;
+        rep.改了++;
+        var newId = !r.dingeId ? (bind || (d.strict ? String(d.code || '') : '')) : '';
+        if (newId && newId !== String(r.dingeId || '')) rep.绑定++;
+        edits.push({ r: r, h: d.craft, id: newId });
+      });
+    });
+  });
+  if (edits.length) {
+    var s0 = '';
+    try { s0 = (typeof snapQuote === 'function') ? snapQuote(c) : ''; } catch (e) { }
+    try { pushHist(); } catch (e) { }                       /* ② 整单一次，不是每行一次 */
+    try {
+      _v34MigSnap = (HIS && HIS.undo && HIS.undo.length) ? HIS.undo[HIS.undo.length - 1] : '';
+    } catch (e) { }
+    edits.forEach(function (x) {
+      if (x.h != null) x.r.h = x.h;
+      if (x.id) x.r.dingeId = x.id;
+    });
+    try { v33CraftToast(rep); } catch (e) { }
+  }
+  c._v34craftVer = V34_CRAFT_VER;                          /* ④ 跑过就盖章，同一份行集第二次打开不再重跑 */
+  c._v34craftSig = sig;
+  return rep;
 }
 /* 本单命中的「说明：」段（结算规则），去重后印到末尾 */
 function v33SettleList(c) {
@@ -11073,17 +11318,50 @@ function v33CraftOfRow(r) {
 v33PreRender = function () {
   try {
     var c = cur();
-    if (!c || c._v33craftVer === V33_CRAFT_VER) return;
-    var r = v33MigrateCraft(c);
-    c._v33craftVer = V33_CRAFT_VER;
-    if (r.改了 || r.绑定) { save(); v33CraftToast(r); }
+    if (!c || (c._v34craftVer === V34_CRAFT_VER && c._v34craftSig === v34CraftSig(c))) return;
+    var r = v33MigrateCraft(c);                            /* 盖章在 v33MigrateCraft 里，提示也在 */
+    if (r.改了 || r.绑定) { save(); }
   } catch (e) { }
 };
+/* V34 卡 4（B4/R7）：改完必须当场说清「改了几行、哪些没动、怎么退回去」。
+   走产品已有的两条机制：#undoToast 那条带「撤销」按钮的气泡（同 undoToast() 用的那个盒子）+ 全局 toast。
+   不用原生弹窗，不改 showToast/undoToast/hideUndoToast 本体。 */
+var _v34MigT = null, _v34MigSnap = '';
+function v34MigBarHide() {
+  var h = document.getElementById('undoToast');
+  if (h) h.className = '';
+}
+function v34MigBar(msg) {
+  var h = document.getElementById('undoToast');
+  if (h && h.className === 'show' && typeof _delUndo !== 'undefined' && _delUndo) return false;  /* 别顶掉「已删除客户・可撤销」那条 */
+  if (!h) { h = document.createElement('div'); h.id = 'undoToast'; document.body.appendChild(h); }
+  h.innerHTML = '<span>' + esc(msg) + '</span><button type="button" id="v34MigUndo">撤销</button>';
+  h.className = 'show';
+  var b = document.getElementById('v34MigUndo');
+  if (b) b.onclick = function () {
+    try {
+      /* 只在「这次升级还是最后一步」时退，否则交给正常的 Ctrl+Z 逐级退，不串别人的改动 */
+      if (_v34MigSnap && HIS && HIS.undo && HIS.undo.length && HIS.undo[HIS.undo.length - 1] === _v34MigSnap) undoHist();
+    } catch (e) { }
+    _v34MigSnap = '';
+    v34MigBarHide();
+  };
+  clearTimeout(_v34MigT);
+  _v34MigT = setTimeout(v34MigBarHide, 12000);
+  return true;
+}
 function v33CraftToast(r) {
   try {
-    if (typeof showToast !== 'function' || !r.改了) return;
-    showToast('工艺说明已换成定额库里的完整做法（本单更新 ' + r.改了 + ' 行'
-      + (r.绑定 ? '，其中同名唯一绑定 ' + r.绑定 + ' 行' : '') + '）', 3500);
+    if (typeof showToast !== 'function' || !r || !r.改了) return;
+    var msg = '本单 ' + r.改了 + ' 行工艺说明已换成定额库里的完整做法'
+      + (r.空白 ? '（其中 ' + r.空白 + ' 行原来空着）' : '')
+      + (r.绑定 ? '，' + r.绑定 + ' 行按同名唯一补上了定额出处' : '')
+      + (r.手改 ? '；你手写的 ' + r.手改 + ' 行原样没动' : '')
+      + (r.查不到做法 ? '；另有 ' + r.查不到做法 + ' 行定额库里查不到完整做法，也原样留着' : '')
+      + '。按 Ctrl+Z 可退回原样。';
+    showToast('已升级 ' + r.改了 + ' 行工艺说明，按 Ctrl+Z 可退回原样', 4000);
+    if (!v34MigBar(msg)) showToast('本单 ' + r.改了 + ' 行工艺说明已换成定额库里的完整做法，按 Ctrl+Z 可退回原样。', 9000);
+    r.提示 = msg;
   } catch (e) { }
 }
 
@@ -11186,15 +11464,43 @@ function v33Status() {
   bar.style.display = 'flex';
   var amt = 0, q = 0, p = 0;
   rows.forEach(function (x) { amt += (x.row._amt || 0); q += (x.row._q != null ? x.row._q : v33Num(x.row.q)); p += v33Num(x.row._p_disp != null ? x.row._p_disp : x.row.p); });
-  var t = '选中 ' + (rows.length || cells.length) + ' 行 · 合价合计 ¥' + (Math.round(amt * 100) / 100).toFixed(2)
+  var t = '选中 ' + (rows.length || cells.length) + ' 行'
+    + (cells.length > rows.length ? ' · ' + cells.length + ' 格' : '')/* B9 卡④：跨列矩形选区必须写明格数，否则"按 N 行批量改"会被读成"N 格都乘一遍" */
+    + ' · 合价合计 ¥' + (Math.round(amt * 100) / 100).toFixed(2)
     + ' · 数量合计 ' + (Math.round(q * 1000) / 1000);
   if (cells.length === 1) {
     var co = v33Coord(cells[0]);
     if (co) t = '选中 ' + co.sec + '·第 ' + (co.ri + 1) + ' 行 · ' + t;
   }
-  bar.textContent = t;
+  var sp = bar.querySelector('.v33-status-t');
+  if (!sp) { bar.innerHTML = ''; sp = document.createElement('span'); sp.className = 'v33-status-t'; bar.appendChild(sp); }
+  sp.textContent = t;
+  /* B9 入口：选区 ≥2 行就把「按选区批量改」摆到手边，走的是「⋯ 更多」里同一个 v33BatchSel()，不另起一套 */
+  var btn = bar.querySelector('.v33-sbatch');
+  if (rows.length >= 2) {
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'v33-sbatch noprint';
+      btn.title = '对选中的整行按系数/单价/数量批量改，一次操作一条撤销';
+      btn.onclick = function () { try { v33BatchSel(); } catch (e) { } };
+      bar.appendChild(btn);
+    }
+    btn.textContent = '▦ 按选区批量改 ' + rows.length + ' 行';
+  } else if (btn) btn.parentNode.removeChild(btn);
+  v33StatusGeo(bar);
   bar.setAttribute('data-amt', String(Math.round(amt * 100) / 100));
   bar.setAttribute('data-rows', String(rows.length));
+}
+function v33StatusGeo(bar) {
+  /* 状态栏是 fixed（见 .v33-status 那条注释：sticky 在这个布局里等于没钉），
+     脱流后拿不到 #panel 的宽，只能现量一次 left/width —— 换窗宽/密度后下一次选中或重画就会纠正。 */
+  var host = document.getElementById('panel');
+  if (!host) return;
+  var r = host.getBoundingClientRect();
+  if (!(r.width > 0)) return;
+  bar.style.left = Math.round(r.left) + 'px';
+  bar.style.width = Math.round(r.width) + 'px';
 }
 /* ---------- 填充柄：选中区右下角那块小方块 ---------- */
 function v33Handle() {
@@ -11525,12 +11831,14 @@ document.addEventListener('change', function (ev) {
     var r = old.apply(this, arguments);
     try { v33Datalists(); v33Status(); v33Handle(); } catch (e) { }
     try {
-      /* 只量一次：每次重画都读一次几何 = 强制同步布局，300 行单实测一次就 70 毫秒（V33-5 G-5 的坑） */
-      if (!window.__v33h2) {
+      /* 分区头高度只在「主题|密度|窗宽」这一组变了才重量一次：每次重画都读几何 = 强制同步布局，
+         300 行单实测一次就 70 毫秒（V33-5 G-5 的坑）；换了窗口宽/密度不重算又会把首行再压回去。 */
+      var de = document.documentElement, k = (de.getAttribute('data-theme') || '') + '|' + (de.getAttribute('data-density') || '') + '|' + window.innerWidth;
+      if (window.__v33h2k !== k) {
         var th = document.querySelector('#panel table.q tr.phead td');
         if (th && th.getBoundingClientRect().height > 0) {
-          document.documentElement.style.setProperty('--v33-h2', (54 + Math.round(th.getBoundingClientRect().height)) + 'px');
-          window.__v33h2 = 1;
+          de.style.setProperty('--v33-h2', Math.round(th.getBoundingClientRect().height) + 'px');
+          window.__v33h2k = k;
         }
       }
     } catch (e) { }
