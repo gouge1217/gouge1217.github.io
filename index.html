@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>设计师工作站</title>
-<script>WORKBENCH_VERSION='v35-2026-09-21';</script>
+<script>WORKBENCH_VERSION='v36-2026-09-23';</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 #topbar .sp{flex:1}
@@ -918,7 +918,7 @@ td.op .btn,td.op .rowmenu .btn{min-width:var(--tap-h);min-height:var(--tap-h);li
 /* V25-1 报价数字框：放大 + 全宽 + tabular-nums + 焦点深松绿光环 */
 #panel table.q td.num input{height:100%;min-height:44px;font-size:16px;font-variant-numeric:tabular-nums;text-align:right;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;width:100%;transition:box-shadow .3s ease,background .3s ease,border-color .3s ease}
 #panel table.q td.num{padding:2px 4px;cursor:text}
-table.q td.num input:hover{border-color:var(--brand);background:#fff;cursor:pointer}
+table.q td.num input:hover{border-color:var(--brand);background:#fff}/* 卡5（B36）：这条把常态粗十字换成手型、进编辑再换成 I 梁，就是"同一格 hover 换一支、点下去又换一支"的那三跳；手型在这里还谎报了"这是个按钮"。只删 cursor，边框与底色一字未动 */
 table.q td.num input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,107,79,.25);background:#fbfdfb}
 #panel table.q td.num.b-amt,#panel table.q td.num.g-amt{font-size:16px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;text-align:right;padding-right:10px}
 /* V25-2 行高 48px + 记忆点：分区头左侧深松绿竖线 */
@@ -1120,12 +1120,34 @@ tr:hover .v31-ell,tr:focus-within .v31-ell,tr.v31-hot .v31-ell,.v31-ell.on,.v31-
   table.q tr:first-child>td,table.q tr:first-child>th{border-top-width:1px}
   table.q td.op{position:relative}
   table.q td.op>.v31-ell{position:absolute;right:2px;top:50%;transform:translateY(-50%);z-index:3}
-  .v32-dtext{display:block;min-height:0;height:20px;line-height:20px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mut);padding:2px 46px 2px 0;cursor:pointer}
+  /* V36 卡3（B34-2）：「详情」这一格从只读摘要改成行内可编辑格（与「计量规则」同一套解锁路径）。
+     折叠态与上面 110 行的说明格同口径：一行 + 省略号、≥40 像素、字号 14；点它只选中、不展开。
+     height:100% 与 1113 行 td.ed input 同一写法：同排别的格更高时不许被判"没铺满"（L5a）。
+     展开只认表头那颗总开关（body.v33-craft-open），进编辑（.v33-edit）才按内容长高。 */
+  table.q td.op textarea.v32-dtext{display:block;box-sizing:border-box;width:100%;height:100%;min-height:40px;overflow:hidden;resize:none;border:0;margin:0;background:transparent;border-radius:4px;white-space:nowrap;text-overflow:ellipsis;font-size:14px;line-height:1.45;font-family:inherit;vertical-align:top;color:var(--mut);padding:2px 46px 2px 0}
+  table.q td.op textarea.v32-dtext::placeholder{color:var(--mut);opacity:1}
   .v32-dtext b{color:var(--ink);font-weight:600}
-  /* V33-2③：原来鼠标一扫就浮起白框的自动展开规则已删（他要的是总开关 + 单击这一行） */
-  .v32-dtext:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
-  .v32-dtext.v33-open,body.v33-craft-open .v32-dtext{height:auto;white-space:normal;overflow:visible}
+  /* V33-2③：鼠标一扫就浮白框的自动展开早已删；V36 卡3 把「单击这一行就展开」也删了（他只要表头那颗） */
+  table.q td.op textarea.v32-dtext.v33-edit{cursor:text;background:var(--card);white-space:pre-wrap;word-break:break-word;height:auto;max-height:46vh;overflow:auto;field-sizing:content}
+  body.v33-craft-open table.q td.op textarea.v32-dtext{white-space:pre-wrap;word-break:break-word;height:auto;max-height:none;overflow:visible;field-sizing:content}
 }
+/* ===== V36 卡 2（B32 纸面没填满）：只作用于两个纸面宿主——打印预览层与离屏导出件（顶栏「导出PDF」「长图」走的那份）。
+   屏幕工作区 #panel 不在下面这些选择器里，屏上编辑列与卡 1 的成果一律不碰。
+   一、详情列在纸上本来整列不印，可那一格 col 还占着宽（纸面占表宽 12%、导出件占 28%）——右边那条大白边就是这个占位。
+       现在让它真退出布局，把腾出的宽按 V32 那套纸面比例分给可见列：基装 8 列、主材 7 列、综合费用 7 列，各自合计 100%。
+   二、卡片左右内边距 20 像素收到 4 像素：原来表宽只有可打印宽的 96%，收边后 99%，右边白边 0.5%。
+   三、摊平后的文本格吃硬换行、行距跟纸面一致：原来屏上预览与导出件把换行吞成空格。
+   字号、文案、列数、格子里的内容一律不动（不许砍字换宽度）。 */
+.pvbody table.q.bq col.k0,.v30-export-clean table.q.bq col.k0{width:5.5%}.pvbody table.q.bq col.k1,.v30-export-clean table.q.bq col.k1{width:19.5%}.pvbody table.q.bq col.k2,.v30-export-clean table.q.bq col.k2{width:5.5%}.pvbody table.q.bq col.k3,.v30-export-clean table.q.bq col.k3{width:8%}.pvbody table.q.bq col.k4,.v30-export-clean table.q.bq col.k4{width:9%}.pvbody table.q.bq col.k5,.v30-export-clean table.q.bq col.k5{width:10.5%}.pvbody table.q.bq col.k6,.v30-export-clean table.q.bq col.k6{width:21%}.pvbody table.q.bq col.k7,.v30-export-clean table.q.bq col.k7{width:21%}
+.pvbody table.q.mq col.k0,.v30-export-clean table.q.mq col.k0{width:5.5%}.pvbody table.q.mq col.k1,.v30-export-clean table.q.mq col.k1{width:19.5%}.pvbody table.q.mq col.k2,.v30-export-clean table.q.mq col.k2{width:5.5%}.pvbody table.q.mq col.k3,.v30-export-clean table.q.mq col.k3{width:9%}.pvbody table.q.mq col.k4,.v30-export-clean table.q.mq col.k4{width:9%}.pvbody table.q.mq col.k5,.v30-export-clean table.q.mq col.k5{width:11.5%}.pvbody table.q.mq col.k6,.v30-export-clean table.q.mq col.k6{width:40%}
+.pvbody table.q.gq col.k0,.v30-export-clean table.q.gq col.k0{width:5.5%}.pvbody table.q.gq col.k1,.v30-export-clean table.q.gq col.k1{width:19%}.pvbody table.q.gq col.k2,.v30-export-clean table.q.gq col.k2{width:6.5%}.pvbody table.q.gq col.k3,.v30-export-clean table.q.gq col.k3{width:10%}.pvbody table.q.gq col.k4,.v30-export-clean table.q.gq col.k4{width:10%}.pvbody table.q.gq col.k5,.v30-export-clean table.q.gq col.k5{width:14%}.pvbody table.q.gq col.k6,.v30-export-clean table.q.gq col.k6{width:35%}
+/* 退出布局的那一列（基装第 9 格、主材与综合费用第 8 格）；屏幕上被折进详情的两列在这里放回来 */
+.pvbody table.q.bq col.k8,.v30-export-clean table.q.bq col.k8,.pvbody table.q.mq col.k7,.v30-export-clean table.q.mq col.k7,.pvbody table.q.gq col.k7,.v30-export-clean table.q.gq col.k7{display:none}
+.pvbody table.q.bq col.k7,.v30-export-clean table.q.bq col.k7,.pvbody table.q.gq col.k6,.v30-export-clean table.q.gq col.k6{display:table-column}
+.pvbody table.q .col-h,.v30-export-clean table.q .col-h,.pvbody table.q.gq .col-g,.v30-export-clean table.q.gq .col-g{display:table-cell}
+.pvbody table.q td.op,.v30-export-clean table.q td.op,.pvbody table.q th.op,.v30-export-clean table.q th.op{display:none}
+.pvbody .card,.v30-export-clean .card{padding-left:4px;padding-right:4px}
+.pvbody .v32-txt,.v30-export-clean .v32-txt{white-space:pre-wrap;word-break:break-word;line-height:1.5}
 
 .v31-subbar{display:flex;align-items:center;gap:8px;margin:0 0 12px}
 .v31-help{display:inline-flex;align-items:center;justify-content:center;width:var(--tap-h);height:var(--tap-h);min-width:var(--tap-h);border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:14px;line-height:1;cursor:pointer;padding:0;vertical-align:middle}
@@ -1137,7 +1159,7 @@ tr:hover .v31-ell,tr:focus-within .v31-ell,tr.v31-hot .v31-ell,.v31-ell.on,.v31-
 .v31-flag{font-size:var(--f1);color:var(--mut);font-variant-numeric:tabular-nums}
 .v31-undo{margin-left:auto}
 /* ===== V33-3 选中态描边（outline 不占位，所以描边不会把表格撑宽） ===== */
-.v33-c{cursor:cell}
+.v33-c{cursor:text}/* 卡5（B36／D-5）：`cell` 就是设计师说的粗方框。锁着的格子单击后直接键入即进编辑（10763 行）、双击与 F2 也进（10698／10756）——那一点真能做的事是打字，所以给 `text`。同一条形状给到进编辑态（1182 行本来就是 text），四拍不再换形状 */
 /* V33-4：选中框右下角的填充柄、状态栏、定位命中、历史列表 */
 .v33-handle{position:absolute;right:-4px;bottom:-4px;width:14px;height:14px;background:var(--brand);border:1px solid #fff;border-radius:2px;cursor:crosshair;z-index:6}/* 卡10（B8）9→14：判据要命中区 ≥12×12。只放大本体，right/bottom 仍是 -4px —— 凸出 td 的部分不变，所以既不撑格（卡5 铺满）也不多吃邻格中心点（cdp4 blocked） */
 .v33-fillto{outline:2px dashed var(--brand);outline-offset:-2px}
@@ -1158,14 +1180,16 @@ tr:hover .v31-ell,tr:focus-within .v31-ell,tr.v31-hot .v31-ell,.v31-ell.on,.v31-
 
 .v33-sel{outline:2px solid var(--brand);outline-offset:-2px;border-radius:3px;background:var(--brand-soft)}
 .v33-edit{outline:2px solid var(--brand);outline-offset:-2px;background:var(--card);cursor:text;box-shadow:0 0 0 3px var(--focus)}
-table.q td input[readonly],table.q td textarea[readonly]{cursor:cell}
+table.q td input[readonly],table.q td textarea[readonly]{cursor:text}
 
 
 .v31-undobar{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);display:none;align-items:center;gap:12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--sh1);padding:10px 16px;font-size:var(--f2);z-index:9995;max-width:80vw}
 .v31-undobar.on{display:flex}
 .v31-form .v31-field:last-child{margin-bottom:0}
 
-.btn:disabled,.btn.is-off,button:disabled{opacity:.42;cursor:default;box-shadow:none}
+.btn:disabled,.btn.is-off,button:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}/* 卡5（B36）：改前全页唯一一颗箭头态的按钮就是这条命中的 #btnRedo（disabled）。箭头与"普通指针"同形、读起来像没坏，而规范里 not-allowed 的字面义正是"所请求的动作不会被执行"。只换这一支形状，opacity 与 box-shadow 未动 */
+/* 卡5（B36／D-5）：下拉框百分百可点（每颗都挂 onchange），但 Chrome 的 UA 默认给它箭头 ⇒ "能点的没有手型"。与文件里既有的全局复选框手型规则（153 行与 460 行）同族写法，只补光标这一条，不碰尺寸配色 */
+select{cursor:pointer}
 .v31-infopart{margin-top:4px}
 
 .v31-ohead{display:flex;align-items:baseline;gap:10px;margin:10px 0 4px;min-height:var(--tap-h)}/* V32-4 普查：整块可点的分组头也要够 36 像素热区（不新增规则，改在原规则上） */
@@ -2184,22 +2208,10 @@ function v32Struct(fn) {
   else if (r.moved) showToast('已同步 ' + r.moved + ' 处公式引用', 2500);
 }
 
-/* ===== V32-1② 键盘/焦点可达（折叠规则见样式区 V32-2①） ===== */
-function v32DetailOf(r,sec){
-  if(!r)return '';
-  var a=String(r.h==null?'':r.h).replace(/\s+/g,' ').trim();
-  var b=String(r.g==null?'':r.g).replace(/\s+/g,' ').trim();
-  var out=[];
-  /* V35 卡4b(B23)：详情列只印「屏上看不到的那几段」——同一行不放两遍。
-     基装的「计量规则」、主材的「材料说明」两列已在屏上放出（主材那一列取 g||h：g 空时那格显示的就是工艺说明，
-     所以那种行详情不再重复一遍）；工艺说明列与综合费用表的「说明」列仍未放开，照旧收在这里。 */
-  var gColShown=(sec==='base'||sec==='mate');
-  var shownCol=b||(sec==='mate'?a:'');
-  /* V33-1③：定额工艺段自带「工艺」二字，再加标签就成了「工艺 工艺：…」 */
-  if(a&&a!==shownCol)out.push(/^工艺\s*[:：]?/.test(a)?a:('工艺 '+a));
-  if(b&&!gColShown)out.push(/^规则\s*[:：]?/.test(b)?b:('规则 '+b));
-  return out.join('　');
-}
+/* ===== V32-1② 键盘/焦点可达（折叠规则见样式区 V32-2①） =====
+   V36 卡3（B34）：原来这里有个 v32DetailOf(r,sec) 拼"屏上没列印、只折在详情里的那段"文本（带「工艺 /规则 」前缀），
+   详情列那一格现在是可编辑格、直接吃字段本身，判"哪一段该折进来"挪到 rowMenu 里的 v36FoldField（口径一字未改：
+   同一行不放两遍；主材那一格显示 g||h，所以 g 空时 h 不再单列）。 */
 document.addEventListener('focusin',function(e){
   /* V32-1②：只有 :hover 能点亮 ⋮ 的话，键盘用户永远打不开行菜单 */
   var tr=(e.target&&e.target.closest)?e.target.closest('#panel tr'):null;
@@ -2716,6 +2728,7 @@ function qHtml(c,v35paper){
       +'<input class="pt" value="'+esc(partTitle(part.t,pi))+'" data-key="t" onchange="onPartName(this,'+pi+',\'base\')">'
       +'<span class="btns">'
       +'<button class="btn mini" onclick="addRow('+pi+',\'base\')" title="加一项">＋ 项目</button>'
+      +'<button class="btn mini" onclick="addPart()" title="在这排空间之外再建一个分区（基装与主材各建一个）">＋ 新建分区</button>'
       +'<button class="btn mini v31-ell" data-hover="1" title="分区操作">⋮</button>'
       +'</span></div></td></tr>';
     h+='<tr><th>序号</th><th>项目名称</th><th>单位</th><th>数量</th><th>单价</th><th>合价</th><th class="col-g">计量规则</th><th class="col-h">工艺说明</th><th class="op noprint v32-th-dt">详情</th></tr>';
@@ -2747,6 +2760,7 @@ function qHtml(c,v35paper){
       +'<input class="pt" value="'+esc(partTitle(part.t,pi))+'" data-key="t" onchange="onPartName(this,'+pi+',\'mate\')">'
       +'<span class="btns">'
       +'<button class="btn mini" onclick="addRow('+pi+',\'mate\')" title="加一项">＋ 项目</button>'
+      +'<button class="btn mini" onclick="addPart()" title="在这排空间之外再建一个分区（基装与主材各建一个）">＋ 新建分区</button>'
       +'<button class="btn mini v31-ell" data-hover="1" title="分区操作">⋮</button>'
       +'</span></div></td></tr>';
     h+='<tr><th>序号</th><th>项目名称</th><th>单位</th><th>数量</th><th>单价</th><th>合价</th><th class="col-g">材料说明</th><th class="op noprint v32-th-dt">详情</th></tr>';
@@ -2912,6 +2926,32 @@ function v33HasFormula(c){
   (c.gather||[]).forEach(function(g){if(String(g.q==null?'':g.q).charAt(0)==='='||String(g.p==null?'':g.p).charAt(0)==='=')f=true;});
   return f;
 }
+function v36w(el,t){if(el&&String(el.textContent)!==t)el.textContent=t}
+var V36MC=null;
+function v36MoneyExtra(c){
+  /* 卡1（B33）：这三处以前两条刷新路都碰不到 —— 改完停在旧数，要滚到顶点重画（那颗「💾 保存」）才对：
+     ① 顶栏「基装 X + 主材 Y + 综合 Z」那行小字、② 汇总条「增项后应付」与增项卡「含增项应付」——都没有 id；
+     ③ 综合费用表里「按比例」那几行的合价（管理费/税金跟着基装+主材走，快路只写被改那一行时它们不动）。
+     文本口径与 qHtml 渲染时逐字一样；数字仍取 recalc 算好的，这里只写文本、不动金额、不算钱。
+     300 行大单里那三条选择器每次击键都全表扫一遍太贵，所以把节点存下来，
+     认「存的节点还在不在文档里」当失效信号 —— renderPanel 换掉整棵树，下一次就重新找。 */
+  var m=V36MC,live=m&&m.sub&&document.contains(m.sub);
+  if(live)live=m.pay.every(function(e){return document.contains(e)})&&m.gcs.every(function(x){return document.contains(x.td)});
+  if(!live){
+    m=V36MC={sub:document.querySelector('#panel .v17-tt-sub'),
+      pay:[].slice.call(document.querySelectorAll('#panel .totalbar .v.amt-pay,#panel .v14-addon-sum b.amt-pay')),
+      gcs:[].slice.call(document.querySelectorAll('#panel tr[data-v31r^="gather|"] td[class$="-amt"]')).map(function(td){
+        return {td:td,gi:+String(td.parentNode.getAttribute('data-v31r')||'').split('|')[2]}})};
+    if(!m.sub&&!m.pay.length&&!m.gcs.length)V36MC=null;   /* 这一屏根本没有报价表：别把空壳当缓存 */
+  }
+  var at=addonTotals(c),pay='¥'+fmt(c._total+at.confirmed);
+  if(m.sub&&m.sub.firstChild&&m.sub.firstChild.nodeType===3){
+    var t='基装 '+fmt(c._sb)+' + 主材 '+fmt(c._sm)+' + 综合 '+fmt(c._sg);
+    if(m.sub.firstChild.nodeValue!==t)m.sub.firstChild.nodeValue=t;
+  }
+  m.pay.forEach(function(e){v36w(e,pay)});
+  m.gcs.forEach(function(x){var g=(c.gather||[])[x.gi];if(g)v36w(x.td,fmt(g._amt))});
+}
 function v33AmtFast(c,sec,pi,ri){
   /* 只刷被改的那一行 + 所在分区小计 + 四个合计；300 行单里这把 4.4ms/键 降到 ~0.3ms */
   try{
@@ -2938,31 +2978,35 @@ function v33AmtFast(c,sec,pi,ri){
     wc('tc-sb','¥'+fmt(c._sb));wc('tc-sm','¥'+fmt(c._sm));wc('tc-sg','¥'+fmt(c._sg));
     wc('tc-total','¥'+fmt(c._total));wc('tc-total-cn',v35Upper(c._total));
     wc('tc-addon-c','¥'+fmt(ad.confirmed));wc('tc-addon-p','¥'+fmt(ad.pending));wc('tc-pay','¥'+fmt(c._total+ad.confirmed));
+    v36MoneyExtra(c);
     return true;
   }catch(e){return false;}
 }
 function qLocalUpdate(c,pi,ri,sec){
   recalc(c);
   /* V33-5 G-5：只刷新合价/小计/汇总文本，不重建表格，保住输入焦点；
-     没有公式引用时进一步只刷受影响的那几格。 */
-  if((sec==='base'||sec==='mate')&&!v33HasFormula(c))v33AmtFast(c,sec,pi,ri);
-  else updateAllAmts(c);
+     没有公式引用时进一步只刷受影响的那几格。
+     卡1（B33）：快路找不到那一行时以前是静默 return false —— 整屏一个数都没刷，
+     现在退回整表文本刷新（updateAllAmts 只写文本、不重建表格，代价与快路同一量级）。 */
+  if(!((sec==='base'||sec==='mate')&&!v33HasFormula(c)&&v33AmtFast(c,sec,pi,ri)))updateAllAmts(c);
   save();
   auditChangedRow(c,sec,pi,ri);
   auditHeavy();
 }
 function updateAllAmts(c){
-  var b=[],m=[],g=[];
-  c.base.forEach(function(part){part.rows.forEach(function(r){b.push(r._amt)})});
-  c.mate.forEach(function(part){part.rows.forEach(function(r){m.push(r._amt)})});
-  c.gather.forEach(function(r){g.push(r._amt)});
-  var tds=document.querySelectorAll('#panel .b-amt');
-  tds.forEach(function(td,i){if(i<b.length)td.textContent=fmt(b[i]);else if(i<b.length+m.length)td.textContent=fmt(m[i-b.length]);});
-  var gts=document.querySelectorAll('#panel .g-amt');
-  gts.forEach(function(td,i){td.textContent=fmt(g[i])});
-  var bs=document.querySelectorAll('#panel [class^="bs-"]');
-  c.base.forEach(function(part,bi){var el=document.querySelector('#panel .bs-'+bi);if(el)el.textContent=fmt(part._s)});
-  c.mate.forEach(function(part,mi){var el=document.querySelector('#panel .ms-'+mi);if(el)el.textContent=fmt(part._s)});
+  /* 卡1（B33）：原来拿 "#panel .b-amt 的下标" 去对 b/m 两个金额数组 —— 可 .b-amt 里还混着
+     每一个分区的小计格（bs-N / ms-N）和综合费用小计格（#t-gather），从第一个分区往后整整错一位：
+     走这条路的每一格合价都被写成"上一行的数"，看着就是改了不动、滚到顶点重画才对（综合费改一格、
+     或单子里有任何 = 引用格时必走这条路）。改成按行坐标 tr[data-v31r] 认格子，不再依赖节点顺序。 */
+  var acs=document.querySelectorAll('#panel tr[data-v31r] td[class$="-amt"]');
+  for(var i=0;i<acs.length;i++){
+    var k=String(acs[i].parentNode.getAttribute('data-v31r')||'').split('|');
+    var row=k[0]==='gather'?(c.gather||[])[+k[2]]:((((c[k[0]]||[])[+k[1]])||{}).rows||[])[+k[2]];
+    if(row)v36w(acs[i],fmt(row._amt));
+  }
+  /* 分区小计格在 tr.sum 里、身上没有行坐标，按 class 逐个点名（口径与原来一致） */
+  c.base.forEach(function(part,bi){var el=document.querySelector('#panel .bs-'+bi);if(el)v36w(el,fmt(part._s))});
+  c.mate.forEach(function(part,mi){var el=document.querySelector('#panel .ms-'+mi);if(el)v36w(el,fmt(part._s))});
   /* 卡2b（B31）：慢路径这四格以前全裸写，与大卡（永远带 ¥）同屏两个口径 */
   var e=document.getElementById('t-gather');if(e)e.textContent=fmt(c._sg);/* 表内小计格，不带符号 */
   e=document.getElementById('t-gather-t');if(e)e.textContent='¥'+fmt(c._sg);
@@ -2979,6 +3023,7 @@ function updateAllAmts(c){
   wc('tc-sb','¥'+fmt(c._sb));wc('tc-sm','¥'+fmt(c._sm));wc('tc-sg','¥'+fmt(c._sg));
   wc('tc-total','¥'+fmt(c._total));wc('tc-total-cn',v35Upper(c._total));
   wc('tc-addon-c','¥'+fmt(at.confirmed));wc('tc-addon-p','¥'+fmt(at.pending));wc('tc-pay','¥'+fmt(c._total+at.confirmed));
+  v36MoneyExtra(c);
 }
 function onGQ(el,gi){var c=cur();v32CellHist(el);c.gather[gi].q=parseQ(el.value);gLocalUpdate(c,gi)}
 function onGP(el,gi){var c=cur();v32CellHist(el);c.gather[gi].p=parseP(el.value);gLocalUpdate(c,gi)}
@@ -5099,6 +5144,17 @@ function v31UpgradeDo(pi,ri,sec,newP){
 }
 
 /* ===== V24-3：行操作收敛（复制/删除常驻，选材链/套装/算量收进"⋯"下拉） ===== */
+function v36FoldField(r,sec){
+  /* 屏上没有一列印、只折在「详情」里的那一段属于哪个字段：
+     综合费用表折的是「说明」(g)，基装表折的是「工艺说明」(h)。没有可折的段返回空。
+     口径与原来那条 v32DetailOf 一字对齐：同一行不放两遍——主材那一格显示的是 g||h，
+     所以主材行 g 空着的时候 h 已经在那一列印着了，详情格不再重复放一遍（放了就是屏上两遍同一个字段，C4 那类病灶）。 */
+  function sq(v){return String(v==null?'':v).replace(/\s+/g,'')}
+  var g=sq(r.g),h=sq(r.h);
+  if(sec==='gather')return g?'g':'';
+  var 已在别格=g||(sec==='mate'?h:'');
+  return (h&&h!==已在别格)?'h':'';
+}
 function rowMenu(sec,pi,ri){
   var c=cur();if(!c)return '';
   var r=null;
@@ -5109,9 +5165,13 @@ function rowMenu(sec,pi,ri){
   /* V31-6：行操作收成一个入口——右键，或悬停该行时淡入的「⋮」，两者打开同一份菜单。
      V32-2①：折进本列后，这里给一行 ≥40 像素的只读摘要，鼠标停上才展开全文；
      V35 卡4b(B23)：计量规则/材料说明两列已上屏，摘要里只剩屏上看不到的那段（口径见 v32DetailOf）。
-     要改内容走 ⋮ →「详情」的大框面板。 */
-  return '<button class="btn mini v31-ell" data-hover="1" title="本行操作">⋮</button>'
-    +'<div class="v32-dtext" tabindex="0" title="点一下只看这一行的全文；要全部展开用上方总开关">'+esc(v32DetailOf(r,sec))+'</div>';
+     V36 卡3（B34）：这一段从"只读摘要 + 单击展开"改成行内可编辑格（与计量规则同一条解锁路径），
+     要改内容就地改；⋮ →「详情」的大框面板仍在，改的是整行两段。 */
+  var out='<button class="btn mini v31-ell" data-hover="1" title="本行操作">⋮</button>';
+  var fk=v36FoldField(r,sec);
+  if(!fk)return out;
+  var ph=sec==='gather'?'说明':'工艺说明';
+  return out+'<textarea class="v32-dtext" rows="1" data-sec="'+sec+'" data-pi="'+pi+'" data-ri="'+ri+'" data-key="'+fk+'" data-nm="'+escAttr(r.n||'')+'" placeholder="'+ph+'" title="'+ph+'：双击或按 F2 编辑，Enter 提交、Ctrl+Enter 换行、Esc 还原；要全部展开用上方总开关" oninput="onGH(this)" onblur="onGHBlur(this)">'+escAttr(String(r[fk]==null?'':r[fk]))+'</textarea>';
 }
 /* V32-1③(B-35)：原来它假设两列默认隐藏，按 el.style.display 猜可见性——
    而 @959 早就让两列常显、行内 style 是空，于是第一次点没反应、第二次把两列整个藏掉。
@@ -5346,9 +5406,13 @@ function addPartDo(type){
     v31Fields('新建分区',[{label:'分区名称',k:'nm',ph:'如：地下室、阁楼'}],function(f){
       var c2=cur();
       var nm2=String(f.nm||'').trim()||'新分区';
+      pushHist();/* V36 卡4（R5）：新建分区原先不入撤销栈，Ctrl+Z 会撤到别的改动上去 */
+      _histLock=1;try{
       c2.base.push({t:nm2,rows:[{n:'新项目',u:'㎡',q:0,p:0,g:'',h:''}]});
       c2.mate.push({t:nm2+'·主材',rows:[{n:'新项目',u:'㎡',q:0,p:0,g:'',h:''}]});
-      closeModal();save();renderPanel();showToast('已添加分区「'+nm2+'」');
+      closeModal();save();renderPanel();
+      }finally{_histLock=0;}
+      showToast('已添加分区「'+nm2+'」');
     },'创建');
     return;
   }else{
@@ -5360,9 +5424,16 @@ function addPartDo(type){
       (tpl.base||[]).forEach(function(it){if(it.must)bp.rows.push({n:it.n,u:it.u||'㎡',q:0,p:it.p||0,g:it.g||'',h:v33RowH(it),_src:'tpl',_calc:it.calc||'',dingeId:String(it.dingeId||'')});});
       (tpl.mate||[]).forEach(function(it){if(it.must)mp.rows.push({n:it.n,u:it.u||'㎡',q:0,p:it.p||0,g:it.g||'',h:v33RowH(it),_src:'tpl',_calc:it.calc||'',dingeId:String(it.dingeId||'')});});
     }
-    c.base.push(bp);c.mate.push(mp);
+    pushHist();/* V36 卡4（R5）：新建分区原先不入撤销栈，Ctrl+Z 会撤到别的改动上去 */
+    /* V36 卡4：模板带出的新行会让「按定额回填 g」那条预渲染钩子再压一条快照，
+       新建一次分区就得按两下撤销才退回（V35 B18 同族）。整批只留本条：钩子照样落数据，撤一次退整批。 */
+    _histLock=1;
+    try{
+      c.base.push(bp);c.mate.push(mp);
+      closeModal();save();renderPanel();
+    }finally{_histLock=0;}
+    showToast('已添加分区「'+name+'」');
   }
-  closeModal();save();renderPanel();showToast('已添加分区「'+name+'」');
 }
 
 /* ---- 模板库（V29 起下线管理入口：仅保留 tplList/tplGet 供新建客户流程选用历史已存模板；不再提供另存/套用/删除入口） ---- */
@@ -10654,12 +10725,31 @@ document.addEventListener('focusout', function (ev) {
 document.addEventListener('input', function (ev) {
   if (ev.target === V33S.edit) V33S.last = String(ev.target.value);
 }, true);
+function v36EnterSubmits(el) {
+  /* V36 卡3（B34）：卡面要这几格「Enter 提交」。这几格本来就是多行的
+     （示例单 34 行里 14 行的计量规则自带硬换行，见样式区 1106 行那条注释），
+     所以只把 Enter 换成提交，换行交给 Ctrl+Enter / Alt+Enter；备注那种整块文本框不在名单里，Enter 照旧换行。 */
+  try {
+    var kk = String(el.getAttribute('data-key') || '');
+    return el.tagName === 'TEXTAREA' && (kk === 'g' || kk === 'h') && !!(el.closest && el.closest('#panel'));
+  } catch (e) { return false; }
+}
+function v36换行(el) {
+  /* 裸 Enter 改成提交后，换行只剩 Ctrl+Enter / Alt+Enter 这一条路，而 Chromium 里这两个组合在 textarea
+     上什么都不插（实测：改前 Ctrl+Enter 与 Alt+Enter 都不落字，只有裸 Enter 插 \n），所以这一笔要自己接。 */
+  var s = (el.selectionStart == null) ? String(el.value).length : el.selectionStart;
+  var e2 = (el.selectionEnd == null) ? String(el.value).length : el.selectionEnd;
+  el.value = String(el.value).slice(0, s) + '\n' + String(el.value).slice(e2);
+  try { el.setSelectionRange(s + 1, s + 1); } catch (e) { }
+  try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) { }   /* 与手打同一条 oninput 路（onGH→模型→防抖落库） */
+}
 document.addEventListener('keydown', function (ev) {
   var k = ev.key, ed = V33S.edit, sel = V33S.one;
   var ctrl = ev.ctrlKey || ev.metaKey;
   if (ed && (ev.target === ed || ed.contains(ev.target))) {
     if (k === 'Escape') { ev.preventDefault(); v33Stop(true); return; }   /* 取消并还原原值 */
-    if (ed.tagName === 'INPUT' && k === 'Enter' && !ctrl) { ev.preventDefault(); v33Stop(); v33Move(ev.shiftKey ? -1 : 1, 0); return; }
+    if (k === 'Enter' && (ctrl || ev.altKey) && v36EnterSubmits(ed)) { ev.preventDefault(); v36换行(ed); return; }   /* 说明格里 Ctrl+Enter＝换行 */
+    if (k === 'Enter' && !ctrl && !ev.altKey && (ed.tagName === 'INPUT' || v36EnterSubmits(ed))) { ev.preventDefault(); v33Stop(); v33Move(ev.shiftKey ? -1 : 1, 0); return; }
     if (k === 'Tab') { ev.preventDefault(); var d = ev.shiftKey ? -1 : 1; v33Stop(); v33Move(0, d); return; }
     return;                                                    /* 编辑态里其它键一律交回浏览器（方向键移光标不跳格） */
   }
@@ -11040,7 +11130,9 @@ function v33PageWidthPx() {
    只读 DOM 结构、格子里的文字长度和 CSS 写死的纸面列宽，一次 scrollHeight/offsetHeight 都不读。
    常量与列宽实测自 print 媒体 + 1047px 视口（work/_v35c11_cpl.js）：单行格 36 高、每多一行 +18、
    全角字占宽≈字号×1.08、每卡内外边距 18。11 种数据形态对着真 PDF 逐页数过，误差都在 ±1 页内。 */
-var V33_PAPER_PCT = { bq: [5, 17, 5, 7, 8, 9, 18, 18, 0], mq: [5, 17, 5, 8, 8, 10, 35, 0], gq: [5, 17, 6, 9, 9, 12, 31, 0], mat: [4, 15, 30, 31, 8, 6, 6] };
+/* V36 卡 2（B32）：纸面列宽改了（详情列退出布局、腾出的宽按纸面比例分给可见列），这套模型值跟着换成同一组，
+   否则「约几页」的提示会按老列宽折行、与真 PDF 越差越远。末位 0 是屏上那列详情——纸上不印。 */
+var V33_PAPER_PCT = { bq: [5.5, 19.5, 5.5, 8, 9, 10.5, 21, 21, 0], mq: [5.5, 19.5, 5.5, 9, 9, 11.5, 40, 0], gq: [5.5, 19, 6.5, 10, 10, 14, 35, 0], mat: [4, 15, 30, 31, 8, 6, 6] };
 var V33_PAPER_CARD = { gq: 96, tot: 148 };
 var V33_PAPER_OFF = /(noprint|\bwm\b|\btools\b|\bbtns\b|\bhint|linktip|bindsel|pnav|totalbar|pfoot|v31-undobar|v32-nudge|v33-status|modal|v17-foldh|v14-paystat|v14-flows|v14-prdates|v14-prlogs|v14-lockbar|watermark)/;
 var V33_PAPER_BLOCK = { DIV: 1, P: 1, LI: 1, OL: 1, UL: 1, H2: 1, H3: 1, H4: 1, H5: 1, SECTION: 1, DL: 1, DD: 1, DT: 1, PRE: 1 };
@@ -11309,28 +11401,11 @@ function v33FoldSwitchHtml() {
     + '<button class="btn mini" data-v33fold="fold" onclick="v33FoldSet(\'fold\')">只看一行</button>'
     + '<button class="btn mini" data-v33fold="open" onclick="v33FoldSet(\'open\')">全部展开</button></span>';
 }
-/* 单行展开：总开关之外，点某一行的详情摘要只看那一行（口径丁要的是「不必鼠标扫过就弹」） */
-function v33CraftOne(el) {
-  var d = el && el.closest ? (el.querySelector ? el.querySelector('.v32-dtext') : null) : null;
-  if (!d) d = el && el.classList && el.classList.contains('v32-dtext') ? el : null;
-  if (!d) return false;
-  d.classList.toggle('v33-open');
-  return true;
-}
+/* V36 卡3（B34-2）：原来这里另有"单行展开"一条路——点某一行的详情摘要只看那一行
+   （v33CraftOne + click/keydown 两条捕获监听）。他要的是「点一下不要展开，除非我点表头那个按钮」，
+   实测单击确实把那一格从 20 像素撑到 44 像素，整条监听删掉；展开只认上面那颗总开关。
+   同一格现在是可编辑格（见 rowMenu），单击交给选中态引擎＝只选中不聚焦。 */
 (function () {
-  function hit(e) {
-    var t = e.target && e.target.closest ? e.target.closest('#panel .v32-dtext') : null;
-    if (!t) return;
-    e.preventDefault(); e.stopPropagation();
-    v33CraftOne(t);                                   /* 单击这一行的摘要＝只看这一行展开全文 */
-  }
-  document.addEventListener('click', hit, true);
-  document.addEventListener('keydown', function (e) {
-    if (!e.target || !e.target.closest) return;
-    var t = e.target.closest('#panel .v32-dtext');
-    if (!t || document.activeElement !== t) return;
-    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); v33CraftOne(t); }
-  }, true);
   var old = window.renderPanel;
   window.__v33foldrp = 1;
   window.renderPanel = function () { var r = old.apply(this, arguments); try { v33FoldApply(); } catch (e) { } return r; };
