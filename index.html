@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>设计师工作站</title>
-<script>WORKBENCH_VERSION='v36-2026-09-23';</script>
+<script>WORKBENCH_VERSION='v37-2026-09-24';</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 #topbar .sp{flex:1}
@@ -946,7 +946,7 @@ table.q input:focus{outline:none;border-color:var(--brand);background:#fff;backg
 /* V30-3 个性化选项组内序号 */
 .v30-optno{display:inline-block;min-width:24px;font-weight:700;color:#8a6d3b;margin-right:4px}
 /* V30-6 导出专用干净容器：隐藏工具栏/操作列/导航（仅离屏导出节点生效，屏幕态不变） */
-.v30-export-clean .bar,.v30-export-clean .tools,.v30-export-clean .noprint{display:none!important}
+.v30-export-clean .bar,.v30-export-clean .tools,.v30-export-clean .noprint,.v30-export-clean .btns{display:none!important}
 .v30-export-clean table.q tr.phead td{position:static!important}
 .calc-ip:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,107,79,.2)}
 /* V32-4：搜索框与整页备注框原来只写内联宽度，实测 31 / 36 高，接上同一套 token */
@@ -1148,6 +1148,11 @@ tr:hover .v31-ell,tr:focus-within .v31-ell,tr.v31-hot .v31-ell,.v31-ell.on,.v31-
 .pvbody table.q td.op,.v30-export-clean table.q td.op,.pvbody table.q th.op,.v30-export-clean table.q th.op{display:none}
 .pvbody .card,.v30-export-clean .card{padding-left:4px;padding-right:4px}
 .pvbody .v32-txt,.v30-export-clean .v32-txt{white-space:pre-wrap;word-break:break-word;line-height:1.5}
+/* V37-B42：导出 PDF／长图用的离屏宿主（#v30-export-fake，挂 v30-export-clean）没藏分区头那三颗按钮，
+   html2canvas 把「＋ 项目」「＋ 新建分区」「⋮」整个拍了进产物（实测宿主里 20 个 .btns／60 颗全 display:block，
+   宿主文字里三串各出现 20 次）。纸面那条隐藏名单 @970 早就含 .btns，漏的只有导出链这一头。
+   照 @1148 td.op／th.op 的双宿主样板写；不用 !important —— 与 @89 那条 .pheadin .btns{display:flex} 同权重、后写优先。 */
+.pvbody .btns,.v30-export-clean .btns{display:none}
 
 .v31-subbar{display:flex;align-items:center;gap:8px;margin:0 0 12px}
 .v31-help{display:inline-flex;align-items:center;justify-content:center;width:var(--tap-h);height:var(--tap-h);min-width:var(--tap-h);border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:14px;line-height:1;cursor:pointer;padding:0;vertical-align:middle}
@@ -1208,6 +1213,13 @@ select.v31-ip{min-height:var(--ctl-h)}
    只写 outline，不写 color 与 background：文字与底色零变化，夜档不可能出现浅底浅字。
    `<select>` 不在 v33Typing 的名单里（只认 INPUT 与 TEXTAREA），进不了 .v33-sel，所以它单独走 :focus。 */
 .v35-ovcard [data-f].v33-sel,.v35-ovcard select[data-f]:focus{outline:2px solid var(--brand);outline-offset:2px}
+/* V37-B37：报价页那条工具栏（含「💾 保存」）原本在流内，页面一往下滚就被常驻顶栏整颗盖住
+   （实测 s=160~210 那六位 elementFromPoint 命中的是 DIV.wb-top，一次都点不到）。做法＝让位：
+   把它贴在顶栏下沿常驻，z=45 低于顶栏的 50 ⇒ 不反盖顶栏自己那颗「导出数据」（实测那颗全程点得到）。
+   第二条是"钉得住"的前提：main 本身是 overflow:auto 的滚动盒（实测 scrollHeight==clientHeight，它自己从不滚），
+   sticky 在里面对视口不起作用 —— 与 @1166 那条状态栏的教训同一个坑 —— 所以把这个滚动盒交回文档。 */
+#panel .v17-tbar{position:sticky;top:var(--v15-topbar-h);z-index:45;background:var(--panel)}
+.wb-main{overflow:visible}
 </style>
 </head>
 <body>
@@ -1338,7 +1350,10 @@ function applyQuote(s,c){
   c._cache=null;c._cacheSet=null;
   _histCellKey='';                      /* ②：落一条历史之后重新起一次编辑会话 */
   _histLock=1;                          /* ③：重画与恢复焦点会重新触发 focusin/input，期间不许入栈 */
-  try{save();recalc(c);renderPanel();restoreFocus();}finally{_histLock=0;}
+  /* V37 卡1（B44）：原来 save() 排在 recalc() 前面，落库那份还带着改后的派生数
+     （c._cells 坐标表与 _sb/_sm/_sg/_total），撤销只退回了行值 ⇒ 关掉浏览器重开，
+     存储里的钱还是撤销前的。改成先重算再落库，三者一起回退；落库次数一次没多。 */
+  try{recalc(c);save();renderPanel();restoreFocus();}finally{_histLock=0;}
 }
 /* v21 F6-1：#panel focusin 委托——记录当前焦点单元格供撤销/重做后恢复焦点。
    V35 卡1（B18）：原来在这里 pushHistDebounced(k)，于是「光点一下格子、一个字没打」
@@ -1690,9 +1705,34 @@ function autoSave(){
   setSaveLamp('busy');
   clearTimeout(_autoSaveT);
   _autoSaveT=setTimeout(function(){
+    _autoSaveT=null;
     try{save();setSaveLamp('ok');}catch(e){setSaveLamp('err');}
   },3000);
 }
+/* V37 卡1（B41）：说明类文字（计量规则 g / 工艺说明 h / 名称 / 单位）的落库口径是「最后一次按键起 3000 毫秒」的防抖。
+   实测（work/_v37c1_debounce.js）：在这 3 秒里刷新或关窗口，刚打的那段字会丢（重开回到改前），
+   而整份文件原本 beforeunload / pagehide / visibilitychange 一个钩子都没有（grep = 0 条）。
+   补两道「一次性」强制落库，绝不改成每次击键写一遍 localStorage（约束⑤：300 行单会卡）：
+     ① 离开说明格那一刻（onGHBlur 里调）＝一格一条，与单价格 qLocalUpdate 的即时落库同一量级；
+     ② 页面刷新/收起/关窗前（pagehide、beforeunload、visibilitychange=hidden，命中即落）＝兜住「改完就走」。
+   三个钩子都只调一次 localStorage.setItem，且不返回字符串 ⇒ 不产生浏览器原生「确定要离开吗」弹窗（约束⑥）。 */
+function flushAutoSave(){
+  if(!_autoSaveT)return;                /* 没有挂起的防抖就一个字都不写：落库次数只减不增 */
+  clearTimeout(_autoSaveT);_autoSaveT=null;
+  try{save();setSaveLamp('ok');}catch(e){setSaveLamp('err');}
+}
+window.addEventListener('pagehide',flushAutoSave);
+window.addEventListener('beforeunload',flushAutoSave);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flushAutoSave();});
+/* ①的实现：不改 onGHBlur（它在 V31 的 31 个禁改清单里），而是在 #panel 的说明格 blur 事件上另挂一个监听，
+   效果相同——离开这一格就把挂起的防抖立刻结算成一次落库。 */
+document.addEventListener('blur',function(e){
+  var el=e.target;if(!el||!el.getAttribute)return;
+  var kk=el.getAttribute('data-key');
+  if(kk!=='g'&&kk!=='h')return;
+  if(!(el.closest&&el.closest('#panel')))return;
+  flushAutoSave();
+},true);
 
 /* ===== v17 阶段3：删除撤销 toast ===== */
 var _delUndo=null,_delToastT=null;
@@ -2772,7 +2812,11 @@ function qHtml(c,v35paper){
         +'<td class="num"><input value="'+(v35paper?qdisp(r):v35Qty(r))+'" title="'+qtitle(r)+'（本格坐标 '+r._qcell+'，其它格可写 ='+r._qcell+' 引用）" data-cell="'+r._qcell+'" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="q" oninput="onMQ(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
         +'<td class="num"><input value="'+v35Price(r._p_disp)+'" title="单价坐标 '+r._pcell+'" data-cell="'+r._pcell+'" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="p" oninput="onMP(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
         +'<td class="num b-amt" data-cell="'+r._acell+'" title="合价 '+r._acell+'，可被 ='+r._acell+' 引用">'+fmt(r._amt)+'</td>'
-        +'<td class="ed qcell-g col-g"><textarea rows="1" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="g" data-nm="'+escAttr(r.n||'')+'" placeholder="材料说明" oninput="onGH(this)" onblur="onGHBlur(this)">'+escAttr((r.g||r.h||''))+'</textarea></td>'
+        /* V37 卡5（B39）：这一格印的是 g、h 两段里"有字的那一段"（显示那半截一个字不改，打印与导出都复用这一格）；
+           既然显示读哪段就看哪段，编辑也必须落进同一段。原来固定绑 g，遇上 g 空、h 有字的行
+           （V34 按定额补工艺时补的正是 h）打字会把 h 整段盖掉，而 h 在屏上既没别的地方能看见、也没有格子能编。
+           两段都空的行仍绑 g＝与改动前一字不差（示例单 51 条主材行全是这一态，纸面与门禁因此不受影响）。 */
+        +'<td class="ed qcell-g col-g"><textarea rows="1" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="'+(r.g?'g':(r.h?'h':'g'))+'" data-nm="'+escAttr(r.n||'')+'" placeholder="材料说明" oninput="onGH(this)" onblur="onGHBlur(this)">'+escAttr((r.g||r.h||''))+'</textarea></td>'
         +'<td class="op noprint">'+rowMenu('mate',pi,ri)+'</td>'
         +'</tr>';
     });
@@ -3489,28 +3533,64 @@ function resetSettings(){
   _setCache=b;setSave();
   syncCom();
 }
-function applySettingsToGather(g,allowAdd){
+/* B40（红线 R5「不许静默改用户数据」）：综合费用这 4 行的默认说明是拿设置栏参数现拼的，参数槽里可以是任何数字。
+   一句 g 只要还逐字等于「机器拼得出来的那一句」（三份历史生成写法，条目按现场实测枚举：本函数 3529-3534/3538-3541、
+   报价计算模块 9504/9506/9510 那批带「（取设置栏默认参数）」的、以及 v31/v32 那代），就说明没人手写过 ⇒ 继续跟参数走；
+   否则一个字都不覆盖。空格子不算手改，与基装那条路的 h 手改守卫同一口径（见 v34 的「③ 手改过的行一律不动」）。 */
+var V37_GDEF={
+  mgmt:['管理费 = (基装+主材) × #%（设置栏默认参数）。',
+        '管理费 = (基装+主材) × #%（取设置栏默认参数）'],
+  tax:['税金 = (基装+主材+管理费) × #%（设置栏默认参数）。'],
+  trash:['垃圾清运 # 元/车（设置栏默认参数）。',
+         '垃圾清运费 # 元（设置栏默认参数）。',
+         '垃圾清运 # 元/车（取设置栏默认参数；以前这里写死 600 元一项）。'],
+  prot:['成品保护费 # 元/㎡ × #㎡（设置栏默认参数）。',
+        '成品保护费 # 元（设置栏默认参数）。',
+        '成品保护 # 元/㎡ × #㎡（按铺装面积算；不勾选项也按这条，以前这里写死 500 元一项）。',
+        '成品保护 # 元/㎡ × #项（按铺装面积算；不勾选项也按这条，以前这里写死 500 元一项）。']
+};
+var V37_GNUM='-?\\d+(?:\\.\\d+)?|-?\\.\\d+';
+function v37GText(k,vals){var i=0;return String(V37_GDEF[k][0]).replace(/#/g,function(){return String(vals[i++]);});}
+var _v37GRe=null;
+function v37GMachine(k,s){
+  if(!_v37GRe){_v37GRe={};Object.keys(V37_GDEF).forEach(function(k2){
+    _v37GRe[k2]=V37_GDEF[k2].map(function(t){
+      return new RegExp('^'+String(t).split('#').map(function(seg){return seg.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join(V37_GNUM)+'$');});});}
+  var l=_v37GRe[k]||[];for(var i=0;i<l.length;i++){if(l[i].test(s))return true;}
+  return false;
+}
+function v37GHand(k,g,willWrite){
+  var s=(g==null?'':String(g));
+  if(!s.trim())return false;
+  if(s===willWrite)return false;
+  return !v37GMachine(k,s);
+}
+function applySettingsToGather(g,allowAdd,v37Cust){
   var o=setLoad();
   var mgmt=o.defaults.mgmtRate,trash=o.defaults.trashFee,prot=o.defaults.protectFee,tax=o.defaults.taxRate;
   /* V33-8①：成品保护按建筑面积计（他写「一平方 5 块钱」）。单子没填面积就不硬乘、也不瞎补，
      交给「会不会漏项」提醒——原来这里写死 1000 元/项，是界面上的第二套常数。 */
-  var _area=0;try{var _cc=cur();_area=parseFloat((_cc&&_cc.area)||'')||0;}catch(e){}
+  /* V37 卡9（B60）：第三个入参只喂「新建的这一单」。createCustomer 走到这里时 S 还没切过去（它在同一
+     个函数末尾才把当前单换成新单），cur() 取到的是上一单 ⇒ 新建单的综合费用按上一单的面积算钱。
+     传了 v37Cust 就用新单自己的面积；不传时下面这一支与基线逐字相同（报价页「⚙ 按默认更新综合费」那颗
+     按钮、空库首启的示例单两条路都不传，行为一律不动）。 */
+  var _area=0;try{var _cc=v37Cust||cur();_area=parseFloat((_cc&&_cc.area)||'')||0;}catch(e){}
   var protU=_area>0?'㎡':'项',protQ=_area>0?_area:1;
   var hasMgmt=false,hasTrash=false,hasProt=false,hasTax=false;
   (g||[]).forEach(function(r){
-    if(r.n==='管理费'){r.p=mgmt;r.q='total';r.g='管理费 = (基装+主材) × '+mgmt+'%（设置栏默认参数）。';hasMgmt=true;}
-    else if(r.n==='税金'){r.p=tax;r.q='total';r.g='税金 = (基装+主材+管理费) × '+tax+'%（设置栏默认参数）。';hasTax=true;}
-    else if(r.n==='垃圾外运费'){r.n='垃圾清运费';r.u='车';r.q=1;r.p=trash;r.g='垃圾清运 '+trash+' 元/车（设置栏默认参数）。';hasTrash=true;}
-    else if(r.n==='垃圾清运费'){r.p=trash;r.u='车';r.q=1;r.g='垃圾清运 '+trash+' 元/车（设置栏默认参数）。';hasTrash=true;}
+    if(r.n==='管理费'){var _wm=v37GText('mgmt',[mgmt]);r.p=mgmt;r.q='total';if(!v37GHand('mgmt',r.g,_wm))r.g=_wm;hasMgmt=true;}
+    else if(r.n==='税金'){var _wt=v37GText('tax',[tax]);r.p=tax;r.q='total';if(!v37GHand('tax',r.g,_wt))r.g=_wt;hasTax=true;}
+    else if(r.n==='垃圾外运费'){var _ws=v37GText('trash',[trash]);r.n='垃圾清运费';r.u='车';r.q=1;r.p=trash;if(!v37GHand('trash',r.g,_ws))r.g=_ws;hasTrash=true;}
+    else if(r.n==='垃圾清运费'){var _ws2=v37GText('trash',[trash]);r.p=trash;r.u='车';r.q=1;if(!v37GHand('trash',r.g,_ws2))r.g=_ws2;hasTrash=true;}
     else if(r.n==='成品保护费'){
-      if(_area>0){r.p=prot;r.q=protQ;r.u=protU;r.g='成品保护费 '+prot+' 元/㎡ × '+protQ+'㎡（设置栏默认参数）。';}
+      if(_area>0){var _wp=v37GText('prot',[prot,protQ]);r.p=prot;r.q=protQ;r.u=protU;if(!v37GHand('prot',r.g,_wp))r.g=_wp;}
       hasProt=true;}
   });
   if(allowAdd!==false){
-    if(!hasMgmt)g.push({n:'管理费',u:'项',q:'total',p:mgmt,g:'管理费 = (基装+主材) × '+mgmt+'%（设置栏默认参数）。'});
-    if(!hasTrash)g.push({n:'垃圾清运费',u:'车',q:1,p:trash,g:'垃圾清运 '+trash+' 元/车（设置栏默认参数）。'});
-    if(!hasProt&&_area>0)g.push({n:'成品保护费',u:protU,q:protQ,p:prot,g:'成品保护费 '+prot+' 元/㎡ × '+protQ+'㎡（设置栏默认参数）。'});
-    if(!hasTax)g.push({n:'税金',u:'元',q:'total',p:tax,g:'税金 = (基装+主材+管理费) × '+tax+'%（设置栏默认参数）。'});
+    if(!hasMgmt)g.push({n:'管理费',u:'项',q:'total',p:mgmt,g:v37GText('mgmt',[mgmt])});
+    if(!hasTrash)g.push({n:'垃圾清运费',u:'车',q:1,p:trash,g:v37GText('trash',[trash])});
+    if(!hasProt&&_area>0)g.push({n:'成品保护费',u:protU,q:protQ,p:prot,g:v37GText('prot',[prot,protQ])});
+    if(!hasTax)g.push({n:'税金',u:'元',q:'total',p:tax,g:v37GText('tax',[tax])});
   }
 }
 function defPayFromSettings(){
@@ -3524,9 +3604,28 @@ function defPayFromSettings(){
 function applyDefaultParams(){
   var c=cur();if(!c)return;
   pushHist();
+  var _v37gb=c.gather.map(function(r){return {n:r.n,g:r.g};});
   applySettingsToGather(c.gather);
   save();recalc(c);renderPanel();
-  showToast('已应用设置栏默认参数到当前客户。');
+  showToast(v37GReport(_v37gb,c.gather),7000);
+}
+/* V37 卡 8（Q15／B86）：「⚙ 按默认更新综合费」的提示要说清改了几行、保住了几行。
+   只读判定结果（按前／按后逐行比说明的文字，再用现成的 v37GMachine 认这一句是不是默认算出来的样子），
+   不参与判定本身。 */
+var V37_GROWKEY={'管理费':'mgmt','税金':'tax','垃圾清运费':'trash','垃圾外运费':'trash','成品保护费':'prot'};
+function v37GReport(before,after){
+  var n=0,m=0;
+  for(var i=0;i<after.length;i++){
+    var g=String(after[i].g==null?'':after[i].g);
+    var b=i<before.length?String(before[i].g==null?'':before[i].g):null;
+    if(b===null||b!==g){n++;continue;}
+    var k=V37_GROWKEY[after[i].n];
+    if(k&&g.trim()&&!v37GMachine(k,g))m++;
+  }
+  if(n>0&&m>0)return '按默认参数改了 '+n+' 行说明，你手写的 '+m+' 行原样没动。按 Ctrl+Z 可退回原样。';
+  if(n>0)return '按默认参数改了 '+n+' 行说明，没动过你手写的说明。按 Ctrl+Z 可退回原样。';
+  if(m>0)return '你手写的 '+m+' 行说明原样没动。';
+  return '各行说明已经就是默认参数算出来的样子，这次没做改动。';
 }
 function resetSettingsConfirm(){
   if(!v31Guard("resetSettingsConfirm","恢复出厂默认",'确定将全部设置恢复为出厂默认值吗？\n（公司名称/电话/地址/设计师/打印模板/管理费率/垃圾清运费/成品保护费/税率/收款节点比例/字号/页脚等）',"resetSettingsConfirm",arguments))return;
@@ -4107,7 +4206,21 @@ function cnNum(n){var N=['零','一','二','三','四','五','六','七','八','
 function roomName(t){return String(t||'').replace(/^[一二三四五六七八九十]+、/,'').trim()}
 function partTitle(t,i){return cnNum(i+1)+'、'+roomName(t)}
 function onRN(el,pi,ri,part,key){var c=cur();v32CellHist(el);var r=c[part][pi].rows[ri];r[key]=el.value;if(key==='q')r._manual=1;autoSave()}
-function onPartName(el,pi,part){var c=cur();c[part][pi].t=el.value;save();renderPanel()}
+function onPartName(el,pi,part){
+  /* V37 卡2（B43）：这一格放的是显示值 partTitle(t,pi)（2756/2788 渲进去的），旧写法把整串写回 t ⇒ 屏幕前缀被焊进数据字段（红线 R5）。
+     口径两条：
+     ① 显示值与原样重渲出来的字符串一字不差 ⇒ 用户什么都没改（Esc／点别处离开也一样），不写模型、不落库、不重画；
+     ② 只剥「我们自己渲出去的那一段」＝cnNum(pi+1)+'、'，逐字相同才剥；用户自己打的别的字（含他写的序号、·、空格）原样进 t。
+     既有备份里 t 已带前缀的，只在用户真的改这一格那一次顺带纠正（见回报「改了哪几条」），不做批量清洗。 */
+  var c=cur();if(!c)return;
+  var p=(c[part]||[])[pi];if(!p)return;
+  var old=String(p.t==null?'':p.t), v=String(el.value==null?'':el.value);
+  if(partTitle(old,pi)===v)return;
+  var pre=cnNum(pi+1)+'、';
+  var t=v.slice(0,pre.length)===pre?v.slice(pre.length):v;
+  if(t===old){el.value=partTitle(t,pi);return;}
+  p.t=t;save();renderPanel();
+}
 /* v18 11.2/11.3 计量规则/工艺说明/材料说明行内编辑 + 同名项目同步提示 */
 function onGH(el){
   var c=cur();if(!c)return;
@@ -4125,7 +4238,7 @@ function onGHBlur(el){
   var nm=el.getAttribute('data-nm')||'';
   var v=(el.value||'').trim();
   if(!nm||!v)return;
-  var tag=key==='h'?'工艺说明':(sec==='mate'?'材料说明':'计量规则');
+  var tag=el.getAttribute('placeholder')||(key==='h'?'工艺说明':(sec==='mate'?'材料说明':'计量规则'));
   var hits=[];
   ['base','mate'].forEach(function(ps){
     (c[ps]||[]).forEach(function(part,ppi){
@@ -5773,7 +5886,7 @@ function createCustomer(){
   var cArea=parseFloat(document.getElementById('nc_area').value)||0;
   if(src==='__rooms'&&cArea>0){v26FillQuant(b,m,cArea);}
   if(cArea<=0){for(var wj=0;wj<b.length;wj++){if(b[wj].t==='水电全房'&&b[wj].rows){b[wj].rows=[];}}}
-  applySettingsToGather(g,extXlsx?false:undefined);
+  applySettingsToGather(g,extXlsx?false:undefined,{area:cArea});/* V37 卡9（B60）：此刻 S 还是上一单，面积必须按新建这一单自己的算——cArea 与同一函数里 c.area 是同一个 parseFloat 口径 */
   if(cArea<=0)showToast('请先在客户信息里填建筑面积，已跳过水电项目。');
   /* v21 F4-1：合同编号自动生成 SH+yyyyMMdd+3位序号+'-'+账户标识（当天该账户计数，天然不跨账户撞号；手改由报价单编辑保留不覆盖） */
   var acct=(typeof _ACCT!=='undefined'&&_ACCT&&_ACCT.account)?String(_ACCT.account):'';
@@ -5827,7 +5940,7 @@ function printSign(){
 /* ===== V28-5.2 导出 PDF / 长图（内嵌 html2canvas，离线可用）；V29：自写 jpegToPdf 替代原 356KB PDF 库（→约60行） ===== */
 function v30ExportSrc(c){
   var wrap=document.createElement('div');wrap.id='v30-export-fake';
-  wrap.style.cssText='position:absolute;left:-9999px;top:0;width:1010px;background:#fff;padding:16px;';/* V32-3①：900px 与 A4 横版内容宽（≈1010px）不一致，导出件按 900 排版后又被压到纸上，字更容易挤断 */
+  wrap.style.cssText='position:absolute;left:-9999px;top:0;width:1047px;background:#fff;padding:0;';/* V37 卡6（B38）：导出件与纸面共用一套"可打印宽"——宽＝纸面内容宽 277mm 折 96dpi＝1046.9px 取 1047，内边距照纸面口径（.pvbody 打印态内边距为 0）收到 0。原来外框 1010 加内边距 16 让内容宽只剩 978，表宽比纸面窄 6.65%，同样一张表被塞进 297mm 铺满的图里，字比打印出来的大 11.14%。V32-3① 那条只把外框从 900 对齐到 1010，没对齐内容宽。 */
   wrap.className='v30-export-clean';
   try{wrap.innerHTML=printHead(c)+qHtml(c,1);v32Flatten(wrap);}catch(e){setTimeout(function(){try{wrap.remove();}catch(e2){}},0);return null;}/* V32-3①：导出链同样摊平；B25：导出件走纸面口径（小写取整到元） */
   document.body.appendChild(wrap);return wrap;
@@ -5860,13 +5973,13 @@ function jpegToPdf(pages,fileName){
   offs[2]=len;pushStr('2 0 obj\n<< /Type /Pages /Kids ['+kids+'] /Count '+pages.length+' >>\nendobj\n');
   for(i=0;i<pages.length;i++){
     var pg=pages[i],pId=3+i*3,imgId=pId+1,ctId=pId+2;
-    var wPt=(pg.w*ptMm).toFixed(2),hPt=(pg.h*ptMm).toFixed(2),yPt=(PH-pg.h*ptMm).toFixed(2);
+    var wPt=(pg.w*ptMm).toFixed(2),hPt=(pg.h*ptMm).toFixed(2),xPt=((pg.x||0)*ptMm).toFixed(2),yPt=(PH-(pg.y||0)*ptMm-pg.h*ptMm).toFixed(2);/* V37 卡6（B38）：页内左/上边距进放图坐标，导出件不再铺满 297mm */
     offs[pId]=len;pushStr(pId+' 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+PW+' '+PH+'] /Resources << /XObject << /Im'+i+' '+imgId+' 0 R >> >> /Contents '+ctId+' 0 R >>\nendobj\n');
     var raw=atob(pg.data.split(',')[1]);var bytes=new Uint8Array(raw.length);for(var j=0;j<raw.length;j++)bytes[j]=raw.charCodeAt(j);
     var dim=v29JpegSize(bytes);
     offs[imgId]=len;pushStr(imgId+' 0 obj\n<< /Type /XObject /Subtype /Image /Width '+dim.w+' /Height '+dim.h+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+bytes.length+' >>\nstream\n');
     pushBin(bytes);pushStr('\nendstream\nendobj\n');
-    var ct='q\n'+wPt+' 0 0 '+hPt+' 0 '+yPt+' cm\n/Im'+i+' Do\nQ\n';
+    var ct='q\n'+wPt+' 0 0 '+hPt+' '+xPt+' '+yPt+' cm\n/Im'+i+' Do\nQ\n';
     offs[ctId]=len;pushStr(ctId+' 0 obj\n<< /Length '+ct.length+' >>\nstream\n'+ct+'endstream\nendobj\n');
   }
   var xrefPos=len;
@@ -5887,14 +6000,15 @@ function v28ExportPdf(){
   setTimeout(function(){
     try{
       v29Snap(src).then(function(canvas){
-        var pw=297,ph=210;
-        var pagePx=Math.max(1,Math.floor(canvas.width*ph/pw));
+        var pw=297,ph=210,mx=10,my=10;/* V37 卡6（B38）：页边距与纸面 @page margin:10mm 同口径（原来 x=0、w 铺满 297mm） */
+        var cw=pw-2*mx,chh=ph-2*my;/* 正文宽 277mm、每页可放 190mm：切片高度按这两个数换算，导出件的 mm/px 才与纸面同档 */
+        var pagePx=Math.max(1,Math.floor(canvas.width*chh/cw));
         var pages=[],pos=0;
         while(pos<canvas.height){
           var h=Math.min(pagePx,canvas.height-pos);
           var pc=document.createElement('canvas');pc.width=canvas.width;pc.height=h;
           pc.getContext('2d').drawImage(canvas,0,pos,canvas.width,h,0,0,canvas.width,h);
-          pages.push({data:pc.toDataURL('image/jpeg',0.92),w:pw,h:h*pw/canvas.width});
+          pages.push({data:pc.toDataURL('image/jpeg',0.92),w:cw,h:h*cw/canvas.width,x:mx,y:my});
           pos+=h;
         }
         jpegToPdf(pages,(c.name||'客户')+'_报价单.pdf');
