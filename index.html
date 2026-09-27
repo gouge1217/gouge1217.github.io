@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>设计师工作站</title>
-<script>WORKBENCH_VERSION='v39-2026-09-27';</script>
+<script>WORKBENCH_VERSION='v40-2026-09-27';</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 #topbar .sp{flex:1}
@@ -1600,7 +1600,7 @@ function defMaterials(c){
       if(!(sec==='mate')&&seen[r.n])return;
       seen[r.n]=1;
       var name=(r.n+(room&&r.n.indexOf(room)<0?('（'+room+'）'):''))||r.n;
-      var qty=0;if(typeof r.q==='number')qty=r.q;else if(typeof r.q==='string'&&r.q.charAt(0)!=='=')qty=parseFloat(r.q)||0;
+      var qty=0;if(typeof r.q==='number')qty=r.q;else if(typeof r.q==='string'&&r.q.charAt(0)!=='=')qty=v40GateNum(r.q);/* V40 卡40b（B208）：选材表数量同尺 */
       var note='';if(r.g||r.h)note=String(r.g||r.h).split('\n')[0].replace(/^\d+[\.、]/,'').trim();
       var pk='r:'+part.t;
       out.push({cat:classify(r.n),name:name,brand:'',spec:'',color:'',qty:qty,u:r.u||'',note:note,done:false,ref:r.n,follow:true,baseName:r.n,no:'',partKey:pk,partName:room});
@@ -2131,7 +2131,7 @@ function cur(){var d=db();if(!S){v38SetCur(d.customers[0].id);}for(var i=0;i<d.c
 /* ---------- 计算 ---------- */
 function recalc(c){
   var sb=0,sm=0,sg=0,st=0;
-  function effP(r,area){var p=r.p;if(p==='area5')p=(area||0)*5;if(typeof p==='string'){if(p.charAt(0)==='=')p=evalFormula(c,r,p);else {var _p12=v38pNum(p);p=_p12===null?0:_p12;}}return p||0}/* V38 卡12（B122）：单价读数同源 */
+  function effP(r,area){var p=r.p;if(p==='area5')p=(area||0)*5;if(typeof p==='string'){if(p.charAt(0)==='='){if(v38cycP(r))return 0;p=evalFormula(c,r,p,1);}else {var _p12=v38pNum(p);p=_p12===null?0:_p12;}}return p||0}/* V38 卡12（B122）：单价读数同源；V40 卡40a（B228/Q199=a）：单价格公式过环闸、结果不取整 */
   function num(v){if(typeof v==='number')return v;var n=v38pNum(v);return n===null?0:n;}/* V38 卡12（B122）：认字符串这一岔改走写入口那把尺（v38pNum→v38Num），number 一字未动 */
   /* V38 卡12（B119／B126／B127）· 循环引用当场拦。
      按 buildCells 的同序给每行编号，只抽"引擎真会读到的"依赖：
@@ -2142,7 +2142,8 @@ function recalc(c){
      同时把"第几行第几格"当场提示出来（V38Q79=a 已裁），既不静默归零，也不静默留着放大值。 */
   var V38CYC={on:{},list:[],sig:''};window.V38CYC=V38CYC;
   function cycK(r){return (r&&r._cell)?String(r._cell):'';}
-  function v38cycHere(r){var k=cycK(r);return k!==''&&!!V38CYC.on[k];}
+  function v38cycHere(r){var k=cycK(r),o=k!==''?V38CYC.on[k]:null;return !!(o&&o.q);}/* V40 卡40a（B228）：环标记区分列——v38cycHere 只认数量格 */
+  function v38cycP(r){var k=cycK(r),o=k!==''?V38CYC.on[k]:null;return !!(o&&o.p);}
   function v38cycToast(cc){
     var L=V38CYC.list;if(!L.length)return;
     var sig=String(cc.id||'')+'|'+L.map(function(x){return x.cell;}).join(',');
@@ -2159,7 +2160,8 @@ function recalc(c){
       if(!r)return;
       var rn=seq.length+1,cell=String(r._cell||('R'+rn));
       seq.push({r:r,rn:rn,cell:cell,pi:pi,nm:String(r.n==null?'':r.n)});
-      if(typeof r.q==='string'&&r.q.charAt(0)==='='){fmap[rn]=1;nf++;}
+      var _fq=typeof r.q==='string'&&r.q.charAt(0)==='=',_fp=pi!=null&&typeof r.p==='string'&&r.p.charAt(0)==='=';/* V40 卡40a（B228）：base/mate 的单价格公式也入图（综合费单价不走公式，不入） */
+      if(_fq||_fp){fmap[rn]={q:_fq,p:_fp};nf++;}
       if(pi!=null){var kk=pi+'@'+String(r.n==null?'':r.n);(partName[kk]=partName[kk]||[]).push(rn);}
       var ak='@'+String(r.n==null?'':r.n);(allName[ak]=allName[ak]||[]).push(rn);
     }
@@ -2170,8 +2172,8 @@ function recalc(c){
     var byRn={},i;
     for(i=0;i<seq.length;i++)byRn[seq[i].rn]=seq[i];
     function lastEx(list,self){for(var k=list.length-1;k>=0;k--)if(list[k]!==self)return list[k];return null;}
-    function deps(e){
-      var out=[],f=String(e.r.q||''),s=f.slice(1),mm,self=e.rn;
+    function deps(e,isP){
+      var out=[],f=String((isP?e.r.p:e.r.q)||''),s=f.slice(1),mm,self=e.rn;/* V40 卡40a（B228）：isP=1 取单价格的边，取边规则与数量列逐字同源 */
       /* SUM(区域)：只有列区间和 D/E/F 有交集才构成依赖 */
       var re=/SUM\s*\(\s*([A-H])(\d+)\s*:\s*([A-H])(\d+)\s*\)/gi,m2;
       while((m2=re.exec(s))){
@@ -2194,7 +2196,7 @@ function recalc(c){
       return out;
     }
     var ED={};
-    Object.keys(fmap).forEach(function(rn){var e=byRn[rn];if(!e)return;ED[rn]=deps(e);});
+    Object.keys(fmap).forEach(function(rn){var e=byRn[rn];if(!e)return;var _dd=[];if(fmap[rn].q)_dd=_dd.concat(deps(e));if(fmap[rn].p)_dd=_dd.concat(deps(e,1));ED[rn]=_dd;});/* V40 卡40a（B228）：同一行 q/p 两侧各取边后合并 */
     Object.keys(fmap).forEach(function(start){
       var seen={},stk=(ED[start]||[]).slice(),hit=false;
       while(stk.length){
@@ -2204,10 +2206,10 @@ function recalc(c){
         var l=ED[u];if(l)for(var z=0;z<l.length;z++)stk.push(l[z]);
       }
       if(!hit)return;
-      var e2=byRn[start],f=String(e2.r.q||''),cs=[],re4=/([A-H])(\d+)/g,mm4;
+      var e2=byRn[start],f=String(e2.r.q||'')+((fmap[start]&&fmap[start].p)?(';'+String(e2.r.p||'')):''),cs=[],re4=/([A-H])(\d+)/g,mm4;
       while((mm4=re4.exec(f))){if(mm4[1]!=='B')cs.push(mm4[1]+mm4[2]);}
-      if(!cs.length)cs.push('D'+e2.rn);
-      V38CYC.on[e2.cell]={rn:e2.rn,name:e2.nm.slice(0,20),cell:'D'+e2.rn,what:'数量格',acell:'F'+e2.rn,f:f.slice(0,40),refs:cs.slice(0,6)};
+      if(!cs.length)cs.push((fmap[start]&&fmap[start].p&&!fmap[start].q?'E':'D')+e2.rn);
+      V38CYC.on[e2.cell]={rn:e2.rn,name:e2.nm.slice(0,20),cell:((fmap[start]&&fmap[start].p&&!fmap[start].q)?'E':'D')+e2.rn,q:!!(fmap[start]&&fmap[start].q),p:!!(fmap[start]&&fmap[start].p),what:(fmap[start]&&fmap[start].q&&fmap[start].p)?'数量格/单价格':((fmap[start]&&fmap[start].p)?'单价格':'数量格'),acell:'F'+e2.rn,f:f.slice(0,40),refs:cs.slice(0,6)};/* V40 卡40a（B228）：环标记带 q/p 旗与判词 */
       V38CYC.list.push(V38CYC.on[e2.cell]);
     });
     if(V38CYC.list.length)v38cycToast(c);
@@ -2226,7 +2228,7 @@ function recalc(c){
     (c.gather||[]).forEach(function(g){if(g.n===nm)v=num(g._q);});
     return v;
   }
-  function evalFormula(c,r,q){
+  function evalFormula(c,r,q,isP){
     var s=String(q).slice(1),dec=null;
     var mm=s.match(/@(\d+)$/);if(mm){dec=parseInt(mm[1]);s=s.slice(0,mm.index);}
     /* v9：SUM(区域) 展开，如 =SUM(F1:F50) */
@@ -2268,7 +2270,7 @@ function recalc(c){
     var v;
     try{v=Function('return ('+replaced+')')();}catch(e){return 0;}
     if(!isFinite(v))return 0;
-    if(dec!==null)return Number(v.toFixed(dec));
+    if(dec!==null)return Number(v.toFixed(dec));if(isP)return v;/* V40 卡40a：单价公式结果不取整（WPS 逻辑，与「单价显示保真」判据同向） */
     return Math.round(v);
   }
   function qv(r,src,part){
@@ -3290,7 +3292,7 @@ function qHtml(c,v35paper){
   +'<div class="v17-dropmenu">'
   +TOPBAR_MORE.map(function(b){return '<button onclick="'+b[0]+'">'+b[1]+'</button>'}).join('')
   +'</div></div>'
-  +'<div id="hintPanel" style="display:none;margin:0" class="hint">数量支持公式，按 <code>=</code> 开头（如 <code>=乳胶漆</code>、<code>=地砖面积/0.64*1.08</code>）；数量/单价可改、自动重算、回车跳下一格。WPS式公式：输 <code>=</code> 后点其它格自动填坐标，支持 <code>=F4</code> 引用、<code>=SUM(F1:F50)</code> 求和。Ctrl+Z 撤销 / Ctrl+Y 重做（最多30步）。</div>'
+  +'<div id="hintPanel" style="display:none;margin:0" class="hint">数量、单价支持公式（单价结果不取整），按 <code>=</code> 开头（如 <code>=乳胶漆</code>、<code>=地砖面积/0.64*1.08</code>）；数量/单价可改、自动重算、回车跳下一格。WPS式公式：输 <code>=</code> 后点其它格自动填坐标，支持 <code>=F4</code> 引用、<code>=SUM(F1:F50)</code> 求和。Ctrl+Z 撤销 / Ctrl+Y 重做（最多30步）。</div>'
   +'</div>';
   var anch=psecAnchors(c);
   if(anch.length>1){
@@ -3330,7 +3332,7 @@ function qHtml(c,v35paper){
         +'<td class="ed">'+pkgBadge(r)+'<input value="'+esc(r.n)+'" data-sec="base" data-pi="'+pi+'" data-ri="'+ri+'" data-key="n" list="v33NameList" oninput="onRN(this,'+pi+','+ri+',\'base\',\'n\')"></td>'
         +'<td class="ed"><input value="'+esc(v35paper?r.u:v35UnitDisp(r.u))+'" data-sec="base" data-pi="'+pi+'" data-ri="'+ri+'" data-key="u" list="v33UnitList" oninput="onRN(this,'+pi+','+ri+',\'base\',\'u\')"></td>'
         +'<td class="num"><input value="'+(v35paper?qdisp(r):v35Qty(r))+'" title="'+qtitle(r)+'（本格坐标 '+r._qcell+'，其它格可写 ='+r._qcell+' 引用）" data-cell="'+r._qcell+'" data-sec="base" data-pi="'+pi+'" data-ri="'+ri+'" data-key="q" oninput="onQ(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
-        +'<td class="num"><input value="'+v35Price(r._p_disp)+'" title="单价坐标 '+r._pcell+'" data-cell="'+r._pcell+'" data-sec="base" data-pi="'+pi+'" data-ri="'+ri+'" data-key="p" oninput="onP(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
+        +'<td class="num"><input value="'+v35Price(r._p_disp)+'" title="单价，可输入 =公式（=项目名 或 =算式；保留小数加 @2）；坐标 '+r._pcell+' data-cell="'+r._pcell+'" data-sec="base" data-pi="'+pi+'" data-ri="'+ri+'" data-key="p" oninput="onP(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
         +'<td class="num b-amt" data-cell="'+r._acell+'" title="合价 '+r._acell+'，可被 ='+r._acell+' 引用">'+fmt(r._amt)+'</td>'
         +'<td class="ed qcell-g col-g"><textarea rows="1" data-sec="base" data-pi="'+pi+'" data-ri="'+ri+'" data-key="g" data-nm="'+escAttr(r.n||'')+'" placeholder="计量规则" oninput="onGH(this)" onblur="onGHBlur(this)">'+escAttr(r.g||'')+'</textarea></td>'
         +'<td class="ed qcell-h col-h"><textarea rows="1" data-sec="base" data-pi="'+pi+'" data-ri="'+ri+'" data-key="h" data-nm="'+escAttr(r.n||'')+'" placeholder="工艺说明" oninput="onGH(this)" onblur="onGHBlur(this)">'+escAttr(r.h||'')+'</textarea></td>'
@@ -3362,7 +3364,7 @@ function qHtml(c,v35paper){
         +'<td class="ed">'+pkgBadge(r)+'<input value="'+esc(r.n)+'" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="n" list="v33NameList" oninput="onRN(this,'+pi+','+ri+',\'mate\',\'n\')"></td>'
         +'<td class="ed"><input value="'+esc(v35paper?r.u:v35UnitDisp(r.u))+'" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="u" list="v33UnitList" oninput="onRN(this,'+pi+','+ri+',\'mate\',\'u\')"></td>'
         +'<td class="num"><input value="'+(v35paper?qdisp(r):v35Qty(r))+'" title="'+qtitle(r)+'（本格坐标 '+r._qcell+'，其它格可写 ='+r._qcell+' 引用）" data-cell="'+r._qcell+'" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="q" oninput="onMQ(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
-        +'<td class="num"><input value="'+v35Price(r._p_disp)+'" title="单价坐标 '+r._pcell+'" data-cell="'+r._pcell+'" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="p" oninput="onMP(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
+        +'<td class="num"><input value="'+v35Price(r._p_disp)+'" title="单价，可输入 =公式（=项目名 或 =算式；保留小数加 @2）；坐标 '+r._pcell+' data-cell="'+r._pcell+'" data-sec="mate" data-pi="'+pi+'" data-ri="'+ri+'" data-key="p" oninput="onMP(this,'+pi+','+ri+')" onblur="cellBlur(this)" onkeydown="cellKey(event,this)"></td>'
         +'<td class="num b-amt" data-cell="'+r._acell+'" title="合价 '+r._acell+'，可被 ='+r._acell+' 引用">'+fmt(r._amt)+'</td>'
         /* V37 卡5（B39）：这一格印的是 g、h 两段里"有字的那一段"（显示那半截一个字不改，打印与导出都复用这一格）；
            既然显示读哪段就看哪段，编辑也必须落进同一段。原来固定绑 g，遇上 g 空、h 有字的行
@@ -4004,7 +4006,7 @@ function matHtml(c,v38pack){
       if(merged){
         /* v20 P2-C：800×800 / 600×1200 等大地砖同规格合并成一行、数量累加、备注列出用到空间；子明细折叠可展开 */
         var parts=[],qsum=0;
-        grp.items.forEach(function(mm){var p=mm.partName||mm.remark||'';if(p&&parts.indexOf(p)<0)parts.push(p);qsum+=parseFloat(mm.qty)||0;});
+        grp.items.forEach(function(mm){var p=mm.partName||mm.remark||'';if(p&&parts.indexOf(p)<0)parts.push(p);qsum+=v40GateNum(mm.qty);/* V40 卡40b（B208） */});
         var m0=grp.items[0],mi0=c.materials.indexOf(m0);
         h+='<tr class="v20-mat-merged">'
           +'<td class="ct">1</td>'
@@ -5747,7 +5749,7 @@ function pkgQtyC(area,q){
   if(typeof q==='string'){
     if(q==='area')return area;
     if(q.indexOf('area')===0){var e=q.replace(/area/g,String(area));try{var v=Function('return ('+e+')')();return isFinite(v)?Math.round(v*100)/100:0;}catch(err){return 0;}}
-    var n=parseFloat(q);return isNaN(n)?0:n;
+    var n=v40GateNum(q);return isNaN(n)?0:n;/* V40 卡40b（B208） */
   }
   return parseFloat(q)||0;
 }
@@ -6034,7 +6036,7 @@ function addonTotals(c){
 }
 function addonCalcTotal(a){
   var s=0;
-  (a.rows||[]).forEach(function(r){s+=(parseFloat(r.q)||0)*(parseFloat(r.p)||0)});
+  (a.rows||[]).forEach(function(r){s+=v40GateNum(r.q)*v40GateNum(r.p)});/* V40 卡40b（B208）：1,200×3 不再算成 1×3 */
   a.total=Math.round(s);
   return a.total;
 }
@@ -8548,7 +8550,7 @@ function plTplRename(key,v){var list=plRoomtpl();var t=plFindTpl(key);if(t){t.na
 function plTplMust(key,part,idx,v){var list=plRoomtpl();var t=plFindTpl(key);if(t&&t[part]&&t[part][idx])t[part][idx].must=v?1:0;plSaveRoomtpl(list);plTplRender(list,key);}
 function plTplItem(key,part,idx,f,v){
   var list=plRoomtpl();var t=plFindTpl(key);if(!t||!t[part]||!t[part][idx])return;
-  if(f==='p'){t[part][idx].p=parseFloat(v)||0;}else{t[part][idx][f]=v;}
+  if(f==='p'){t[part][idx].p=v40GateNum(v);}/* V40 卡40b（B208） */else{t[part][idx][f]=v;}
   plSaveRoomtpl(list);
 }
 function plTplCalc(key,part,idx,v){var list=plRoomtpl();var t=plFindTpl(key);if(t&&t[part]&&t[part][idx])t[part][idx].calc=v;plSaveRoomtpl(list);plTplRender(list,key);}
@@ -9375,7 +9377,7 @@ function hxUrl(id,v){
 /* ========== v7 新增：公式数量 / 备注 / 重建选材 / 导出回传 / 定额导入 ========== */
 /* V32-6/B-1：单价与数量格显示走 fmt()（带千分位），但回读只 parseFloat ——
    3,800 会被读成 3 并立刻落库。回读一律先剥千分位与全角逗号，显示口径不动。 */
-function v32Num(v){return parseFloat(String(v==null?'':v).replace(/[,，、\s]/g,''));}
+function v32Num(v){var n=v38pNum(v);return n===null?NaN:n;}/* V40 卡40b（B208/Q157）：与引擎同源；认不出返回 NaN，由调用点的 isFinite 兜底（四处调用均已有） */
 /* V38 卡2（B05/B06）：q/p 回读不再"认不出来就折成 0"。三步——
    ① 全角先归一（３３→33，全角小数点、全角逗号一并收）；
    ② 剥千分位与空白（V32-6/B-1 原口径，那一句一个字没动）后，整串必须落在这条语法里：[+-] 数字 [. 数字] [E [+-] 数字]；
@@ -9389,13 +9391,17 @@ function v32Num(v){return parseFloat(String(v==null?'':v).replace(/[,，、\s]/g
 var V38BAD={v38bad:1},V38TYPING={v38typing:1};
 function v38Half(s){return String(s).replace(/[！-～]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-65248);});}
 function v38Num(v){
-  var s=v38Half(String(v==null?'':v)).replace(/[,，、\s]/g,'');
+  var s=v38Half(String(v==null?'':v)).replace(/[、\s]/g,'');/* V40 卡40b（B208/Q157）：逗号不再一律剥——千分位分组（每组恰3位）剥掉；单个逗号夹数字当小数点（8,5=8.5，设计师 09-27 拍板）；其余沿旧口径剥 */
+  if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s))s=s.replace(/,/g,'');
+  else if(/^\d+,\d+$/.test(s))s=s.replace(',','.');
+  else s=s.replace(/,/g,'');
   if(s==='')return 0;
   if(/^[+-]?$|^[+-]?\.$|^[+-]?\d*[eE][+-]?$/.test(s))return V38TYPING;
   if(!/^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(s))return V38BAD;
   var n=parseFloat(s);
   return isFinite(n)?n:V38BAD;
 }
+function v40GateNum(v){var n=v38pNum(v);return n===null?0:n;}/* V40 卡40b（B208）：四道外门与引擎同一把尺（认不出＝0） */
 function v38No(el,v){
   /* 回读点的闸门：返回 true＝这一笔不许成交（认不出来时已还原格子并按需提示过一次） */
   if(v===V38TYPING)return true;
@@ -9806,7 +9812,7 @@ function importQuoteXlsx(input){
              改前拿 parseFloat('link')||0＝0 去比 ⇒ 首轮往返就报"数量 12→33"，一勾即把规则换成死数字，钱跟着变。
              基准改成导出去写的那个数（_q／_p_disp）：相等＝一个字都不提，真改了才单列一条「不按表覆盖」。 */
           var ruleQ=v38RuleQ(row.q),ruleP=v38RuleP(row.p);
-          var oq=parseFloat(row.q)||0,op=(typeof row.p==='string')?(parseFloat(row.p)||0):(row.p||0);
+          var oq=v40GateNum(row.q),op=v40GateNum(row.p);/* V40 卡40b（B208）：回传比对模型侧读数同尺 */
           var qRef=ruleQ?(parseFloat(row._q)||0):oq,pRef=ruleP?(parseFloat(row._p_disp)||0):op;
           if(Math.abs(qRef-p.q)>1e-9){if(ruleQ)skip(p,'数量由规则算出（'+row.q+'），不按表覆盖','数量',qRef,p.q);else diffs.push({sec:hit.sec,pi:pi,ri:ri,partName:partName,name:p.name,field:'q',old:row.q,new:p.q,chk:true});}
           if(Math.abs(pRef-p.p)>1e-9){if(ruleP)skip(p,'单价由规则算出（'+row.p+'），不按表覆盖','单价',pRef,p.p);else diffs.push({sec:hit.sec,pi:pi,ri:ri,partName:partName,name:p.name,field:'p',old:row.p,new:p.p,chk:true});}
@@ -9940,7 +9946,7 @@ function applyDiffs(){
     /* v22.1 M1：合价为派生值，勾选纠正即按数量×单价重算该行；同时保存导入原始合价供体检判定
        V38 卡16：A8 那一行把两个数换了列（原值＝软件算的、回传值＝她表里写的），所以这里取 d.new；
        与改前"取她表里那个数"完全同一口径，只是换列要跟上来。 */
-    if(d.field==='amt'){var r=secArr[d.pi].rows[d.ri];if(r.q!=null&&r.p!=null){r._amt=r.q*(typeof r.p==='string'?(parseFloat(r.p)||0):(r.p||0));r.rawAmt=d.new;n++;}return;}
+    if(d.field==='amt'){var r=secArr[d.pi].rows[d.ri];if(r.q!=null&&r.p!=null){r._amt=v40GateNum(r.q)*v40GateNum(r.p);/* V40 卡40b（B208）：两把尺并一把 */r.rawAmt=d.new;n++;}return;}
     secArr[d.pi].rows[d.ri][d.field]=d.new;
     n++;
   });
@@ -10931,7 +10937,7 @@ function ceiQty(idx,v){
   var st=window._ceiSel;if(!st)return;
   var d=calcLoad();var r=d.rooms&&d.rooms[st.i];if(!r)return;
   var x=v38CeiAt(st,idx);if(!x)return;/* V38 卡8（B39）：与 ceiPick 同一口径 */
-  var q=parseFloat(v)||0;
+  var q=v40GateNum(v);/* V40 卡40b（B208） */
   var hit=null;(r.ceiList||[]).forEach(function(z){if(z.n===x.n)hit=z;});
   if(hit){hit.q=q;calcSave(d);ceiRender();}
 }
@@ -11264,7 +11270,7 @@ function buildQuoteWb(c){
     pushRow([partTitle(part.t,c.mate.indexOf(part))],ST.part);mer(r,0,r,COLS-1);r++;
     var _mp0=null,_mp1=null;
     part.rows.forEach(function(rr){
-      var _ri=pushRow([part.rows.indexOf(rr)+1,rr.n,rr.u,num(rr._q),num(rr._p_disp),r2(rr._amt),(rr.g||rr.h||''),''],ST.note,Math.max(26,estH(rr.g||'')));
+      var _ri=pushRow([part.rows.indexOf(rr)+1,rr.n,rr.u,num(rr._q),num(rr._p_disp),r2(rr._amt),(rr.g||rr.h||''),(rr.g&&rr.h)?rr.h:''],ST.note,Math.max(26,estH(rr.g||'')+estH((rr.g&&rr.h)?(rr.h||''):'')));/* V40 卡41a（B198）：交付包主材第 8 列不再恒空——与导出链卡 3（B21）同口径 */
       _idRows.push({ri:_ri,sec:'mate',pi:c.mate.indexOf(part),ri2:part.rows.indexOf(rr)});
       _fRows.push({ri:_ri,amt:rr._amt,prot:(rr.q==='link'||rr.q==='total')});
       if(_mp0===null)_mp0=_ri;_mp1=_ri;secLR('mate',_ri);r++;
@@ -11458,9 +11464,9 @@ function v28ParseSmartRows(rows){
     if(/合计|小计|总计|工程造价/.test(a))continue;
     var n=cols.name>=0?String(r[cols.name]==null?'':r[cols.name]).trim():'';
     if(!n||/项目名称/.test(n))continue;
-    var qv=cols.q>=0?(parseFloat(r[cols.q])||0):0;
-    var pv=cols.p>=0?(parseFloat(r[cols.p])||0):0;
-    var av=cols.amt>=0?(parseFloat(r[cols.amt])||0):0;
+    var qv=cols.q>=0?v40GateNum(r[cols.q]):0;/* V40 卡40b（B208） */
+    var pv=cols.p>=0?v40GateNum(r[cols.p]):0;/* V40 卡40b（B208） */
+    var av=cols.amt>=0?v40GateNum(r[cols.amt]):0;/* V40 卡40b（B208） */
     out.push({sec:sec,part:part,name:n,u:cols.unit>=0?String(r[cols.unit]==null?'':r[cols.unit]).trim():'',q:qv,p:pv,amt:av,rawAmt:cols.amt>=0?(isFinite(av)?av:null):null,g:'',h:''});
   }
   return out.length?out:null;
@@ -12895,7 +12901,7 @@ function v33RowOf(sel) {
   });
   return rows;
 }
-function v33Num(v) { var n = parseFloat(String(v == null ? '' : v).replace(/[^\d.\-]/g, '')); return isNaN(n) ? 0 : n; }
+function v33Num(v) { var n = v38pNum(v); return n === null ? 0 : n; }/* V40 卡40b（B208）：与引擎同源（原来 "800*800" 会被剔成 800800） */
 /* 批量操作的外壳：一次操作只留一条撤销记录（格子里的自动入栈在这期间静音） */
 function v33Op(fn) {
   try { pushHist(); } catch (e) { }
