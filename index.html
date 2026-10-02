@@ -1671,7 +1671,7 @@ function upgradeMatKeys(c){
   });
   if(!plan.length){
     if(!_v38MatTold){_v38MatTold=1;
-      showToast('检测到 '+orph.length+' 行旧版选材编号对不上现在的分区，软件按原样保留（没有删行、没有改内容）；数量仍用您那一行填的数。',5000);}
+      showToast('检测到 '+orph.length+' 行旧版选材编号对不上现在的分区，软件按原样保留（没有删行、没有改内容）；数量仍用你那一行填的数。',5000);}
     return;
   }
   _v38MatDone[String(c.id || '')] = 1;
@@ -2143,7 +2143,7 @@ function importData(input){
     for(i=0;i<nb.length;i++){x=nb[i];if(!x||typeof x!=='object')continue;k=String(x.code==null?'':x.code)+'\u0001'+String(x.name==null?'':x.name);c1[String(x.code==null?'':x.code)]=1;ds1+=(typeof x.price==='number')?x.price:0;if((k in om)&&typeof x.price==='number'&&typeof om[k]==='number'&&om[k]!==x.price)df.push(String(x.code==null?'':x.code)+' '+String(x.name==null?'':x.name)+' '+fmt(om[k])+'→'+fmt(x.price));}
     for(c in c0)if(!c1[c]){sd=true;break;}if(!sd)for(c in c1)if(!c0[c]){sd=true;break;}if(df.length)v41dl='\n这次导入会把定额库这 '+df.length+' 条的单价换掉：\n'+df.slice(0,8).join('\n')+(df.length>8?'\n…等 '+df.length+' 条（合计差 '+fmt(ds1-ds0)+' 元）':'');if(n0!==nb.length||sd)v41dl+='\n件里定额库的条目数或编号和当前库不一样：条目数 '+n0+'→'+nb.length+'。';
     })();}catch(e){}
-    v32Go('导入全量备份','将覆盖当前所有客户、定额库与户型库数据。\n文件里有 '+validC.length+' 个客户'+(bad?('，'+bad+' 条读不出将被跳过'):'')+'。\n覆盖前会自动另存一份本机快照。\n文件里主材区那些还没进选材表的主材项（您手动移出过的也算还没进），导入后会被软件一律标成已进选材表，在「选材」页里被当成可勾选的主材项。'+v41dl,function(){
+    v32Go('导入全量备份','将覆盖当前所有客户、定额库与户型库数据。\n文件里有 '+validC.length+' 个客户'+(bad?('，'+bad+' 条读不出将被跳过'):'')+'。\n覆盖前会自动另存一份本机快照。\n文件里主材区那些还没进选材表的主材项（你手动移出过的也算还没进），导入后会被软件一律标成已进选材表，在「选材」页里被当成可勾选的主材项。'+v41dl,function(){
       var old=_dbCache;
       v32SnapKeys([LS,LS_DINGE,LS_HX,LS_SET]);
       _dbCache={customers:validC,schemaVer:(raw&&raw.schemaVer)||21};
@@ -4584,7 +4584,7 @@ function v32ImpCustData(d){
   (d.customers||[]).forEach(function(x){try{if(x&&x.name){/* V41 卡33（B339）：每客户各过一次 migrateUp，与门⓪同一形，抛错走这一句自己的 catch(e){bad++;} */migrateUp({customers:[x],schemaVer:(d&&d.schemaVer)});/* V41 卡21（B250②）：与 importData 第 2126 行同一条尺——缺 rows 的分区补成空列表，非数组脏值一个字不改写 */if(x&&typeof x==='object'&&!Array.isArray(x)){['base','mate'].forEach(function(sec){if(!Array.isArray(x[sec]))return;x[sec].forEach(function(p){if(p&&typeof p==='object'&&!Array.isArray(p)&&p.rows==null)p.rows=[];});});}upgr(x);validC.push(x);}else{v41NoName++;bad++;}}catch(e){bad++;}});
   _V21_READONLY=v41ro;
   if(!validC.length){v31Toast((v41NoName===d.customers.length)?'文件里的 '+d.customers.length+' 条记录都没有客户姓名，已取消导入（当前数据未改动）':'文件里的 '+d.customers.length+' 条记录一条都没能读进来（'+(v41NoName===0?'全部 ':v41NoName+' 条没有客户姓名、')+(d.customers.length-v41NoName)+' 条软件读不出），已取消导入（当前数据未改动）',6000);return;}
-  v32Go('导入客户总库','将覆盖当前全部 '+((db().customers||[]).length)+' 个客户。\n文件里有 '+validC.length+' 个有效客户'+(bad?('，'+bad+' 条读不出将被跳过'):'')+'。\n覆盖前会自动另存一份本机快照。\n文件里主材区那些还没进选材表的主材项（您手动移出过的也算还没进），导入后会被软件一律标成已进选材表，在「选材」页里被当成可勾选的主材项。',function(){
+  v32Go('导入客户总库','将覆盖当前全部 '+((db().customers||[]).length)+' 个客户。\n文件里有 '+validC.length+' 个有效客户'+(bad?('，'+bad+' 条读不出将被跳过'):'')+'。\n覆盖前会自动另存一份本机快照。\n文件里主材区那些还没进选材表的主材项（你手动移出过的也算还没进），导入后会被软件一律标成已进选材表，在「选材」页里被当成可勾选的主材项。',function(){
     var old=_dbCache;
     v32SnapKeys([LS]);
     _dbCache={customers:validC,schemaVer:(d&&d.schemaVer)||21};
@@ -8761,18 +8761,18 @@ function plTplPickDinge(key,part,idx){
 function plTplDoBind(key,part,idx,dingeId){
   var list=plRoomtpl();var t=plFindTpl(key,null,list);
   if(t&&t[part]&&t[part][idx]){
-    t[part][idx].dingeId=dingeId;
-    var d=getDinge();var arr=part==='mate'?d.mate:d.base;
-    var hit=null;
-    for(var i=0;i<(arr||[]).length;i++){var id=String(arr[i].code||arr[i].name||'');if(id===dingeId){hit=arr[i];break;}}
-    if(hit){
+    var d=getDinge();var arr=part==='mate'?d.mate:d.base;var hit=null,amb=0,nm='';
+    for(var i=0;i<(arr||[]).length;i++){var id=String(arr[i].code||arr[i].name||'');if(id===dingeId){nm+=(nm?'、':'')+String(arr[i].name||'');if(hit&&(String(hit.price)!==String(arr[i].price)||String(hit.unit)!==String(arr[i].unit)))amb=1;if(!hit)hit=arr[i];}}
+    if(amb)showToast('「'+dingeId+'」因定额编号重复没有绑定（'+nm+'），请到定额库把编号改唯一',4000);/* V41 卡65（B322）：接「↻ 刷新当前客户单价」（plRefreshPriceFromDinge 的 pick，4520—4527）同一把尺——同编号命中多条且价/单位不一致＝跳过不写并报名，同价同单位多条＝不冲突照旧取第一条；宿主与句式照刷新路，hit/amb/nm 全是本函数局部，无新增全局变量 */
+    if(!amb)t[part][idx].dingeId=dingeId;
+    if(hit&&!amb){
       t[part][idx].n=hit.name;
       t[part][idx].u=hit.unit;
       if(typeof hit.price==='number'&&hit.price>0)t[part][idx].p=hit.price;
       if(hit.note)t[part][idx].g=hit.note;
       if(hit.process)t[part][idx].h=hit.process;else if(hit.note&&!t[part][idx].h)t[part][idx].h=hit.note;
     }
-    plSaveRoomtpl(list);
+    if(!amb)plSaveRoomtpl(list);
   }
   plTplRender(list,key);
 }
@@ -8780,23 +8780,23 @@ function plTplUnbind(key,part,idx){var list=plRoomtpl();var t=plFindTpl(key,null
 function plTplCancelPick(key){var list=plRoomtpl();plTplRender(list,key);}
 function plTplSyncDinge(key){
   var list=plRoomtpl();var t=plFindTpl(key,null,list);if(!t)return;
-  var d=getDinge();var n=0;
+  var d=getDinge();var n=0,dup=[];
   ['base','mate'].forEach(function(part){
     var arr=part==='mate'?d.mate:d.base;
     (t[part]||[]).forEach(function(it){
-      if(!it.dingeId)return;
+      if(!it.dingeId)return;var hit=null,amb=0;
       for(var i=0;i<(arr||[]).length;i++){
-        if(String(arr[i].code||arr[i].name||'')===it.dingeId){
-          /* V32-6④：模板同步同样只刷单价，不改用户写的项目名与单位 */
-          if(typeof arr[i].price==='number'&&arr[i].price>0)it.p=arr[i].price;
-          if(!it.u)it.u=arr[i].unit;
-          n++;break;
-        }
+        if(String(arr[i].code||arr[i].name||'')===it.dingeId){if(hit&&(String(hit.price)!==String(arr[i].price)||String(hit.unit)!==String(arr[i].unit)))amb=1;if(!hit)hit=arr[i];}
       }
+      /* V32-6④：模板同步同样只刷单价，不改用户写的项目名与单位 */
+      if(hit&&!amb){if(typeof hit.price==='number'&&hit.price>0)it.p=hit.price;
+      if(!it.u)it.u=hit.unit;
+      n++;}
+      else if(amb)dup.push(it.dingeId);/* V41 卡65（B322）：先扫全库再写——hit＝第一条，amb＝同编号后续条目里有价/单位与第一条不一致的（＝刷新路 4525 行 pick 的 same 判据，String 比价＋比单位）；amb ⇒ 该编号跳过不写、进 dup，回执尾巴 v41Dup 报名；同价同单位多条＝不冲突照旧取第一条。无新增全局变量 */
     });
   });
   /* V41 卡16（B326）：回执按盘上实情说。want＝本该写成什么，before/after＝盘上原文，只对盘上真变了的那几条报数 */
-  var v41Want=null,v41Before=null;
+  var v41Want=null,v41Before=null,v41Dup=dup.length?('；另有 '+dup.length+' 个绑定项目因定额编号重复未同步（'+dup.slice(0,3).join('、')+'），请到定额库把编号改唯一'):'';
   try{v41Want=JSON.stringify(list);v41Before=localStorage.getItem(LS_ROOMTPL);}catch(e){}
   plSaveRoomtpl(list);
   var v41After=null;try{v41After=localStorage.getItem(LS_ROOMTPL);}catch(e){}
@@ -8814,9 +8814,9 @@ function plTplSyncDinge(key){
   }catch(e){v41N=-1;}
   var v41Landed=(v41After!=null&&v41Want!=null&&v41After===v41Want);
   plTplRender(list,key);
-  if(v41Landed&&v41N>0)showToast('已同步 '+v41N+' 个绑定项目的定额单价');
-  else if(v41Landed)showToast('这些绑定项的单价本来就和定额库一致，本机没有需要改的',5000);
-  else showToast('这次一个都没写进本机，屏上的改动重开就没了。可能是这一单被更新的版本写过（本页只读），或本机存储已满；请先用「导出数据」备份，再用能编辑它的版本打开。',9000);
+  if(v41Landed&&v41N>0)showToast('已同步 '+v41N+' 个绑定项目的定额单价'+v41Dup);
+  else if(v41Landed)showToast('这些绑定项的单价本来就和定额库一致，本机没有需要改的'+v41Dup,5000);
+  else showToast('这次一个都没写进本机，屏上的改动重开就没了。可能是这一单被更新的版本写过（本页只读），或本机存储已满；请先用「导出数据」备份，再用能编辑它的版本打开。'+v41Dup,9000);
 }
 /* ========== F2/F3：空间算量与漏项体检（V31-4 已下线 F2 向导） ========== */
 var plFloor=0;            /* 当前选中楼层 */
@@ -10535,7 +10535,7 @@ function calcWrite(){
   var t=clone(cc);
   var r=calcMergeCalc(d,t);
   if(!r.add.length&&!r.upd.length){showToast('本次计算未产生新的报价条目（请先填写面积/周长），未写入。',2500);return;}
-  var preview='将按空间合并写入当前客户「'+cc.name+'」报价单：新增 '+r.add.length+' 行，更新 '+r.upd.length+' 行。\n更新行保留您手改的单价/单位/备注，仅刷新数量；已存在项目不重复添加。\n\n';
+  var preview='将按空间合并写入当前客户「'+cc.name+'」报价单：新增 '+r.add.length+' 行，更新 '+r.upd.length+' 行。\n更新行保留你手改的单价/单位/备注，仅刷新数量；已存在项目不重复添加。\n\n';
   preview+='【新增】\n'+(r.add.slice(0,12).map(function(x){return '· '+x.n;}).join('\n')||'（无）')+(r.add.length>12?'\n… 共 '+r.add.length+' 行':'');
   preview+='\n\n【更新】\n'+(r.upd.slice(0,12).map(function(x){return '· '+x.n;}).join('\n')||'（无）')+(r.upd.length>12?'\n… 共 '+r.upd.length+' 行':'');
   /* V32-8④(B-19)：原来这里不问一句、也不进撤销栈，直接整块替换 cc.base/mate/gather，
