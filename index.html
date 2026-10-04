@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>设计师工作站</title>
-<script>WORKBENCH_VERSION='v41-2026-10-02';</script>
+<script>WORKBENCH_VERSION='v42-2026-10-04';</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 #topbar .sp{flex:1}
@@ -1881,7 +1881,8 @@ document.addEventListener('blur',function(e){
      顶部横幅会压死顶栏那 8 颗按钮）。 */
 var _v38Base=null,_v38Mine=null,_v38BaseKey='',_v38Broken=null,_v38V18=null,_v38Bad=[],_v38Conflict=null;
 function v38Ser(){try{return JSON.stringify(_dbCache||db());}catch(e){return null}}
-function v38Dirty(){if(_v38Mine==null)return false;return v38Ser()!==_v38Mine}
+function v38Dirty(){if(_v38Mine==null)return false;var s=v38Ser();if(s==null)return true;if(s===_v38Mine)return false;var p=null,o=null;try{p=JSON.parse(s);o=JSON.parse(String(_v38Mine));}catch(e){return true}if(!p||!o)return true;return !v42c70Cmp(p,o);/* V42 卡70（B390②／§二-2）：原来这一句是 return v38Ser()!==_v38Mine 的整串比较。_v38Mine 取在装载那一拍（第 1745 行，第 1747 行才 v38Paint），渲染之后 recalc／upgr 又往模型里补派生键与补齐键，两条串永远差这一截 ⇒ 一个字没改的页签也被判"有待存改动"，第 2016 行"本页签没有待存的改动，已取用那一版"那条静默路一次都走不到，用户每次被逼去点横幅上那颗删数据的按钮。改成两边各解析成对象再交给 v42c70Cmp 比：v38Ser 与落库口本体一个字没动（§二-4），盘上字节的口径因此不变；任一串解析不成或成不了对象 ⇒ 保守判脏。本函数全文唯一调用点仍是第 2016 行那一处，改动面外没有第二个调用方。*/}
+function v42c70Cmp(a,b){/* V42 卡70（B390②／§二-2 的配套尺）：判"这一版和上一版之间，除了软件自己算出来的东西，用户到底改过没有"。两条豁免：① DER 名单里那些键每拍都由 recalc／buildCells 从别的字段重算（本文件第 2378／2381／2391／2401／2405／2411—2418 行），两侧一律不看；② 只在其中一侧冒出来的键，只要它的值是空壳（''／null／[]／{}）或就是产品自己补齐出来的那个默认形状（拿 upgr({}) 现生的默认值当尺子，本函数一个字面量都不硬写，将来 upgr 改了尺子跟着改），也不当改动——_r1 取证实测零改动页签全部的差异就来自这两类，且一条"值不同"都没有。其余逐叶比、数组先比长度 ⇒ 加一行／删一行／改一个字照样判脏；只在旧的那侧有、新的一侧没了，除空壳外一律判脏（宁可多弹一次横幅，不可静默盖掉没存的改动）。*/var DER={_q:1,_p_disp:1,_amt:1,_cell:1,_qcell:1,_pcell:1,_acell:1,_s:1,_cells:1,_sb:1,_sm:1,_sg:1,_total:1},D={};try{upgr(D);}catch(e){}function empt(v){return v===''||v==null||(Array.isArray(v)&&!v.length)||(!!v&&typeof v==='object'&&!Array.isArray(v)&&!Object.keys(v).length);}function dflt(k,v){if(D[k]===undefined)return false;try{return JSON.stringify(D[k])===JSON.stringify(v);}catch(e){return false}}function own(k,v){return !DER[k]&&!empt(v)&&!dflt(k,v);}function eq(x,y){if(x===y)return true;if(Array.isArray(x)||Array.isArray(y)){if(!Array.isArray(x)||!Array.isArray(y)||x.length!==y.length)return false;for(var i=0;i<x.length;i++){if(!eq(x[i],y[i]))return false;}return true;}if(!!x&&!!y&&typeof x==='object'&&typeof y==='object'&&!Array.isArray(x)&&!Array.isArray(y)){var ka=Object.keys(x),kb=Object.keys(y);for(var i2=0;i2<ka.length;i2++){var k=ka[i2];if(DER[k])continue;var j=kb.indexOf(k);if(j<0){if(own(k,x[k]))return false;}else if(!eq(x[k],y[k]))return false;}for(var i3=0;i3<kb.length;i3++){var k2=kb[i3];if(DER[k2])continue;if(ka.indexOf(k2)<0&&own(k2,y[k2]))return false;}return true;}return false;}return eq(a,b);}
 function v38IsBad(i){for(var k=0;k<_v38Bad.length;k++){if(_v38Bad[k].idx===i)return true;}return false}
 /* B10：坏原文留底。同一个坏值只留一份（先找盘上有没有逐字相同的 _v38broken 键），免得每次刷新都多存一份把配额吃光 */
 function v38StashBroken(s,why){
@@ -1923,10 +1924,10 @@ function v38Banner(html){
 }
 function v38Html(){
   if(_v38Conflict){
-    var n='?',d=null;try{d=JSON.parse(_v38Conflict.raw);}catch(e){}
-    if(d&&d.customers)n=d.customers.length;
-    return '【另一个页签刚存过这一份】它那一版里有 '+n+' 个客户，和你这边还没存进去的改动不是同一份。'
-      +'为了不把那一版整份抹掉，这一次没有写进本机。挑一条出路：'
+    var d=null;try{d=JSON.parse(_v38Conflict.raw);}catch(e){}
+    var _c70b=v42c70Union(_v38Conflict.raw,false),n=(d&&Array.isArray(d.customers))?_c70b.对面:'?';
+    return '【另一个页签刚存过这一份】它那一版里有 '+n+' 个客户，你这一版有 '+_c70b.本页+' 个，其中 '+_c70b.并入+' 个只有它那一版有。'
+      +'代价先说清：「保留我这版」＝把本页这一版写进本机，同时把那 '+_c70b.并入+' 家一起并进去——对面新增的客户不会被抹掉（你在本页删掉、对面还留着的那一家会被并回来）；「用它那版」＝取回它那一版 '+n+' 家，丢掉本页还没存的改动。挑一条出路：'
       +v38Btn('v38KeepMine()','保留我这版（覆盖它）')+v38Btn('v38TakeTheirs()','用它那版（丢掉我这版没存的改动）')
       +v38Btn('exportData()','导出数据')+v38Btn('v38CloseConflict()','先不处理');
   }
@@ -1977,14 +1978,16 @@ function v38Adopt(raw,rerender){
   if(rerender){try{renderPanel();}catch(e){}}
   return true;
 }
+function v42c70Union(raw,apply){/* V42 卡70（B390①③／§二-1＋§二-3）：把"对面那一版"与"本页这一版"按客户做并集。同 id 冲突保本页这一版（横幅上用户挑的就是"我这版"）；只有对面有的那一户整户原样搬进来——一个字段不改、不补、不删，所以"字段完整"能逐字节证；没有 id 的户拿整户原文比对，逐字相同就不重复塞；读不成对象的那几条计入坏形、不并（不假装并了）。apply=false 时只算数、内存一个字都不动：横幅先用它把代价说清，点「保留我这版」时同一支函数再真并一次 ⇒ 话与事共用一条尺。返回 {本页,对面,并入,坏形}。*/var d=null;try{d=_dbCache||db();}catch(e){}if(!d||!Array.isArray(d.customers))return{本页:0,对面:0,并入:0,坏形:0};var mine=d.customers,o=null;try{o=JSON.parse(String(raw==null?'':raw));}catch(e){}var theirs=(o&&Array.isArray(o.customers))?o.customers:[],ids={},dup=[];mine.forEach(function(x){if(x&&x.id!=null&&String(x.id)!=='')ids[String(x.id)]=1;try{dup.push(JSON.stringify(x));}catch(e){dup.push('');}});var out={本页:mine.length,对面:theirs.length,并入:0,坏形:0};theirs.forEach(function(x){if(!x||typeof x!=='object'||Array.isArray(x)){out.坏形++;return;}var k=(x.id!=null&&String(x.id)!=='')?String(x.id):null;if(k!=null){if(ids[k])return;ids[k]=1;}else{var t='';try{t=JSON.stringify(x);}catch(e){}if(dup.indexOf(t)>=0)return;}out.并入++;if(apply)mine.push(x);});return out;}
 function v38KeepMine(){
-  var s=v38Ser();_v38Conflict=null;
+  var _c70u=v42c70Union(_v38Conflict?_v38Conflict.raw:null,true),s=v38Ser();_v38Conflict=null;/* V42 卡70（B390 主刀）：原来这一句只有 var s=v38Ser()——s 是本页签内存里的整库，而 _v38Conflict.raw 装的那一版从第 2007 行存进来以后从没被读过（第 1926 行只拿它数了个头数），所以下面第 1984 行一写下去，对面刚新增的那一家连同它的输入一起没了（第三方终验 C-6 实测 48,578B/2 家 → 24,423B/1 家）。现在先把对面那一版并进本页内存库、再序列化：下面 setItem／_v38Base=ok?s:null／_v38Mine=s／灯 那几句一个字都不动，写的还是同一个口、同一个 v38Ser 口径，只是这一串里对面那几家也在。*/
   if(s==null){v38Paint();return;}
   var ok=false;
   try{localStorage.setItem(LS,s);ok=(localStorage.getItem(LS)===s);_v38Base=ok?s:null;_v38Mine=s;_v38BaseKey=LS;}catch(e){ok=false}
   v38Paint();
   try{setSaveLamp(ok?'ok':'err');}catch(e){}
   try{renderPanel();}catch(e){}
+  try{showToast(ok?('已保留本页这一版：本页 '+_c70u.本页+' 家全在，另外把只有对面那版才有的 '+_c70u.并入+' 家一并了进来（对面共 '+_c70u.对面+' 家'+(_c70u.坏形?('，另有 '+_c70u.坏形+' 条读不成客户的坏数据本卡没并进来'):'，一家都没被抹掉')):('这一版没写进本机（多半是本机存储满了）：'+_c70u.并入+' 家已并进内存、屏上能用，但这一次一个字都没落库'),7000);}catch(e){}/* V42 卡70（§二-1 回执）：家数与并入数取刚刚这一次 v42c70Union 自己算出来的，不另开一把尺；没落成就闭掉"已保留"那句（G-165：判一句话诚不诚实要按它自己承诺的那件事量）。*/
 }
 function v38TakeTheirs(){
   var raw=_v38Conflict?_v38Conflict.raw:null;_v38Conflict=null;
@@ -5736,7 +5739,7 @@ function settleHtml(c){
   if(!s.adjustments.length){h+='<tr><td colspan="4" style="color:#8a8578;font-size:12px">暂无调整项</td></tr>';}
   s.adjustments.forEach(function(a,ai){
     h+='<tr><td><input class="v14-in" value="'+esc(a.name)+'" '+(st==='已结算'?'disabled':'')+' onchange="settleAdjField('+ai+',\'name\',this.value)"></td>'
-      +'<td><input class="v14-in v14-num" type="number" value="'+esc(a.amount)+'" '+(st==='已结算'?'disabled':'')+' oninput="settleAdjField('+ai+',\'amount\',this.value)"></td>'
+      +'<td><input class="v14-in v14-num" type="number" value="'+esc(a.amount)+'" '+(st==='已结算'?'disabled':'')+' oninput="settleAdjField('+ai+',\'amount\',this.value)" onkeydown="if(/^[−﹣-]$/.test(event.key)){event.preventDefault();document.execCommand(\'insertText\',false,\'-\');}" onbeforeinput="if(event.data&&/[−﹣]/.test(event.data)){event.preventDefault();document.execCommand(\'insertText\',false,event.data.replace(/[−﹣]/g,\'-\'));}""></td>'/* V42 卡79（B397）：这一格是 type=number，实测浏览器在 value 层就把非 ASCII 负号丢掉——真点打「−800」el.value 直接读回 "800"（badInput=false），程序赋值 el.value='−800' 读回 ""，只有 keydown／beforeinput 两拍字符还在（_c79_numprobe_r1.json 腿A/腿D／_c79_evprobe_r1.json 腿E），所以 v38Num 再怎么归一也喂不进来。这里在取值口补两把钩：keydown 认负号形态就 preventDefault 后按 ASCII '-' 插回（这一拍必须在，因为冷格首拍被本文件 L12451+L12258 的「键入即替换」直接 el.value=repl 抢走，那一拍连 beforeinput 都不发——实测只挂 beforeinput 冷格仍读回 800＝_c79_diag_r1.json T2，挂上 keydown 才 -800＝T3）；beforeinput 同样归一，管热格直打与组合输入（T8 热格 -800）。实测读数：冷/热打「−800」与「-800」都 -800、正 800 仍 800、千分位「−1,200」→ -1200（_c79_diag_r1.json T3—T8）；type、class、min/max、disabled、oninput 全部原样，屏上观感与可输入字符集没改；落库仍走 settleAdjField 原路（a.amount 存字符串），settleCalc 那句 parseFloat 一个字没动。顺带测出但本卡不追的相邻病灶：冷格首拍连 ASCII '-' 一样丢（T12 读回 800），全站 56 只 type=number 格共用这条「键入即替换」路，本卡按 §三 只接了结算这一只 */
       +'<td><input class="v14-in" value="'+esc(a.reason)+'" '+(st==='已结算'?'disabled':'')+' onchange="settleAdjField('+ai+',\'reason\',this.value)"></td>'
       +'<td class="ct">'+(st==='已结算'?'—':'<button class="btn mini danger" onclick="settleDelAdj('+ai+')">✕</button>')+'</td></tr>';
   });
@@ -5787,7 +5790,7 @@ function settleAddAdj(){
 function settleDelAdj(ai){
   var c=cur();var s=c.settlement;
   if(s.status==='已结算')return;
-  s.adjustments.splice(ai,1);save();renderPanel();
+  s.adjustments.splice(ai,1);var t=settleCalc(c);s.final=t.final;save();renderPanel();  /* V42 卡77（B398）：删这一拍照抄同文件第 5796 行「修改调整项金额」那把尺——先 settleCalc(c) 现算再写回 s.final 才 save()；盘上留的必须是删行后的新值。s.original/addon/deduct 一个字节没碰（那三个字段本卡口径不重算），屏上那句仍由 renderPanel() 走 settleHtml→settleCalc 现算，没自创 DOM 补写 */
 }
 function settleAdjField(ai,f,v){
   var c=cur();var s=c.settlement;var a=s.adjustments[ai];if(!a)return;
@@ -5933,7 +5936,7 @@ function pkgSave(){
   if(!(pr>0)){v31Toast('请输入套餐单价（元/㎡）');return;}
   var id=window._pkgEditId;
   var a=pkgList();
-  if(id){var p=pkgGet(id);if(p){p.name=nm;p.price=pr;}}
+  if(id){for(var i=0;i<a.length;i++)if(a[i].id===id){a[i].name=nm;a[i].price=pr;break;}}/* V42 卡71（B387）：改的就是上面那次 pkgList() 解析出的 a 里那个对象；pkgGet 内部会再 pkgList() 一次，改的是另一批新对象，写回 a 时分毫未动 */
   else{a.push({id:'pkg'+Date.now().toString(36),name:nm,price:pr,baseItems:[],mateItems:[],includes:'',excludes:''});}
   var v41c38Pk=savePkgs(a);/* V41 卡38（B357）：判返回值 */
   pkgClearEdit();
@@ -7046,7 +7049,7 @@ window.onbeforeprint=function(){
 function openPrint(kind){
   var c=cur();
   var o=setLoad();var pr=o.print||{};var co=o.company||{};
-  if(kind==='quote'||kind==='material'){var q0=c.quoteNo;ensureQuoteNo(c);q0||setSaveLamp('ok');}  /* V41 卡30（B348）：选材表那一支与报价单那一支共用 printHead，同一口径先过 ensureQuoteNo 再拼第 6736 行那句条件渲染（那句写法一字未动） */
+  if(kind==='quote'||kind==='material'){var q0=c.quoteNo;ensureQuoteNo(c);q0||v38Commit();}  /* V42 卡76（B391）：落库拍改接产品既有每拍口 v38Commit()（本体第 1844 行＝save()＋判返回值＋灯 ok/err，同第 3717／8985 那一把）——真写进库才亮「● 已存进本机」，写不进亮「● 保存失败」；q0 非空（有编号那一拍）短路、不进 v38Commit，维持卡68 语义＝不亮灯不说话 */  /* V41 卡30（B348）：选材表那一支与报价单那一支共用 printHead，同一口径先过 ensureQuoteNo 再拼第 6736 行那句条件渲染（那句写法一字未动） */
   var fs=(parseFloat(pr.fontSize)||12);
   var paper=v32ApplyPaper();
   var body='<div class="wm">'+esc((co.name||'装饰公司'))+'·报价专用</div>';
@@ -8982,27 +8985,27 @@ function plCalcHtml(fi,ri,r){
 function plCalcEdit(fi,ri,k,v){
   var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;
   var num=parseFloat(v);if(isNaN(num)||num<0)num=0;
-  plRoomDims(r);r.dim[k]=num;
+  plRoomDims(r);r.dim[k]=num;v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */
   v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);
 }
 function plCalcDoor(fi,ri,i,k,v){
   var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;
   plRoomDims(r);var m=r.dim.doors[i];if(!m)return;
   var num=parseFloat(v);if(isNaN(num)||num<0)num=0;
-  m[k]=(k==='wrap')?(num?1:0):num;
+  m[k]=(k==='wrap')?(num?1:0):num;v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */
   v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);
 }
 function plCalcWin(fi,ri,i,k,v){
   var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;
   plRoomDims(r);var m=r.dim.windows[i];if(!m)return;
   var num=parseFloat(v);if(isNaN(num)||num<0)num=0;
-  m[k]=num;
+  m[k]=num;v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */
   v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);
 }
-function plCalcDoorAdd(fi,ri){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.doors.push({w:0.9,h:2.1,wrap:0});v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
-function plCalcWinAdd(fi,ri){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.windows.push({w:1.5,h:1.5});v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
-function plCalcDoorDel(fi,ri,i){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.doors.splice(i,1);v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
-function plCalcWinDel(fi,ri,i){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.windows.splice(i,1);v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
+function plCalcDoorAdd(fi,ri){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.doors.push({w:0.9,h:2.1,wrap:0});v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
+function plCalcWinAdd(fi,ri){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.windows.push({w:1.5,h:1.5});v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
+function plCalcDoorDel(fi,ri,i){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.doors.splice(i,1);v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
+function plCalcWinDel(fi,ri,i){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.windows.splice(i,1);v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
 /* F3：回填算量到报价单本空间分区 */
 function plCalcFill(fi,ri){
   var c=cur();if(!c)return;
@@ -9025,7 +9028,7 @@ function plCalcFill(fi,ri){
     if(t!==roomLabel)return;
     (sec.rows||[]).forEach(function(row){
       var ck=row._calc;if(!ck||!map[ck])return;
-      row.q=map[ck];filled++;
+      if(!row._manual){row.q=map[ck];filled++;}/* V42 卡78（B394）：这一行带手写标记（_manual）就跳过数量覆盖，算量本身与其余字段一字未动 */
     });
   });
   if(!filled){missing.push('报价单中无「'+roomLabel+'」分区或可回填项目');}
@@ -9067,7 +9070,7 @@ function plCalcFillAll(){
         if(t!==label)return;
         (sec.rows||[]).forEach(function(row){
           if(!row._calc||!map[row._calc])return;
-          row.q=map[row._calc];filled++;
+          if(!row._manual){row.q=map[row._calc];filled++;}/* V42 卡78（B394）：全单回填是同一个弹窗里的兄弟按钮、同一句无条件覆盖，与第 9028 行同口径 */
         });
       });
     });
@@ -9264,15 +9267,68 @@ function numAt(row,c){
 function parseBaseSheet(wb){
   var ws=wb.Sheets[wb.SheetNames[0]];
   var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
-  var items=[],bigcat='';
-  for(var i=0;i<rows.length;i++){
-    var a=cellAt(rows[i],0),b=cellAt(rows[i],1);
-    if(!b){if(a)bigcat=a;continue;}
-    var state=cellAt(rows[i],6);
-    if(state&&state!=='启用')continue;
-    items.push({cat:bigcat||'其他',code:b,name:cellAt(rows[i],2),unit:cellAt(rows[i],3),price:numAt(rows[i],4),note:cellAt(rows[i],5),process:cellAt(rows[i],7)});
+  /* V42 卡75（B386）：改前列位写死（0大类/1编码/2名称/3单位/4单价/5备注/6状态/7工艺）且零表头识别 ⇒
+     表头少一列、列序不同、竖向合并、两格粘住这四种件都整表静默错位入库，提示仍说「导入成功」。
+     现口径（卡面 D-13 代拍）：① 认得出表头按列名映射，表头里被合并掉/删掉的那一列按改前列序兜底；② 认不出表头先走改前那套列序，对不上位再按
+     「全表唯一的数值列＝单价列」找唯一容差解；③ 竖向合并区的空续格按 xlsx 自带 !merges 回填锚点值
+     （读文件里的事实，不猜）；④ 逐行验"列对得上"，证据分三级：表头件要求名称/单位不是数字，原列序件再加
+     "名称不许空"，容差猜测件再加"编码不许是数字、状态列只许空/启用/停用"；任一行对不上位 ⇒ 整表一条都不入库，
+     交回 dgImport 既有那句「未识别到有效数据」说真话。单价格认不出仍走 numAt 的 B135 旧口径（折 0 入库并逐条报名），
+     本卡不改那笔账。 */
+  var ALIAS=[['cat','大类','类别','分类','分区'],['code','编码','编号','定额编码','定额编号'],['name','名称','项目名称','项目','品名','定额名称'],['unit','单位','计量单位'],['price','单价','价格','基价'],['note','备注','说明'],['state','状态','启用状态'],['process','工艺说明','工艺','做法','材料说明']];
+  var POS={cat:0,code:1,name:2,unit:3,price:4,note:5,state:6,process:7};
+  function hkey(v){return v38Half(String(v==null?'':v)).replace(/[\s\u3000]/g,'').replace(/[（(][^（）()]*[）)]$/,'');}
+  function colOf(row){var L={},ks=ALIAS.length,c,cs=row?row.length:0,t,q;
+    for(c=0;c<cs;c++){var k=hkey(row[c]);if(!k)continue;
+      for(t=0;t<ks;t++){var f=ALIAS[t][0];if(L[f]!==undefined)continue;
+        for(q=1;q<ALIAS[t].length;q++){if(k===hkey(ALIAS[t][q])){L[f]=c;break;}}}}
+    return L;}
+  function isNum(v){var s=String(v==null?'':v).trim();return s!==''&&!!v38KBPrice(s);}
+  var R0=0;try{R0=XLSX.utils.decode_range((ws&&ws['!ref'])||'A1').s.r;}catch(e0){R0=0;}
+  var MG=(ws&&ws['!merges'])||[];
+  function cellM(r,c){
+    if(c===undefined||c<0)return '';
+    var v=cellAt(rows[r],c);if(v!=='')return v;var sr=R0+r,k;
+    for(k=0;k<MG.length;k++){var g=MG[k];
+      if(g.e.r>g.s.r&&g.s.c===c&&sr>=g.s.r&&sr<=g.e.r){var ai=g.s.r-R0;
+        if(ai>=0&&ai<rows.length){var av=cellAt(rows[ai],c);if(av!=='')return av;}}}
+    return '';
   }
-  return items;
+  var HDR=[],hh;
+  for(hh=0;hh<rows.length;hh++){var cn=0,cl=colOf(rows[hh]);for(var ck in cl)cn++;HDR[hh]=cn;}
+  function onlyCell(r){var nz=0,val="",lc=-1,c;
+    for(c=0;c<r.length;c++){var v=String(r[c]==null?"":r[c]).trim();if(v!==""){nz++;val=v;lc=c;}}
+    return nz===1?{值:val,列:lc}:null;}
+  function scan(L,hdr,lvl){
+    var items=[],big='',bad=0,sk=0,i;
+    for(i=0;i<rows.length;i++){var r=rows[i];if(!r||!r.length)continue;
+      if(i===hdr||HDR[i]>=3)continue;
+      var oc=onlyCell(r);if(oc&&(oc.列===0||oc.列===L.cat)){big=oc.值;continue;}
+      var code=cellM(i,L.code);if(code===''){var cv=cellM(i,L.cat);if(cv==='')cv=cellAt(r,0);if(cv!=='')big=cv;continue;}
+      var nm=cellM(i,L.name),un=cellM(i,L.unit),st=cellM(i,L.state);
+      if(isNum(nm)||isNum(un)){bad++;continue;}
+      if(lvl>=1&&nm===''){bad++;continue;}
+      if(lvl>=2&&(isNum(code)||(st!==''&&st!=='启用'&&st!=='停用'))){bad++;continue;}
+      if(st&&st!=='启用'){sk++;continue;}
+      items.push({cat:big||'其他',code:code,name:nm,unit:un,price:numAt(r,L.price),note:cellM(i,L.note),process:cellM(i,L.process)});}
+    return {items:items,bad:bad,sk:sk};
+  }
+  var mx=0,mi;for(mi=0;mi<rows.length;mi++){if(rows[mi]&&rows[mi].length>mx)mx=rows[mi].length;}
+  var hdr=-1,L=null,hj;
+  for(hj=0;hj<rows.length&&hj<12;hj++){var m2=colOf(rows[hj]);
+    if(m2.code!==undefined&&m2.name!==undefined&&m2.price!==undefined){hdr=hj;L=m2;break;}}
+  if(L){var used={},uk;
+    for(uk in L)used[L[uk]]=1;
+    for(uk in POS){if(L[uk]===undefined&&!used[POS[uk]])L[uk]=POS[uk];}   /* 表头里被合并掉/删掉的那一列按改前列序兜底 */
+    var ra=scan(L,hdr,0);if(!ra.bad)return ra.items;return [];}
+  var rb=scan(POS,-1,1);if(!rb.bad)return rb.items;
+  var sols=[],pj;
+  for(pj=1;pj<mx;pj++){var lay={};
+    for(var pk in POS){lay[pk]=POS[pk]+(pj-4);if(lay[pk]<0)lay[pk]=-1;}
+    if(lay.code<0||lay.name<0||lay.price<0)continue;
+    var rc=scan(lay,-1,2);if(!rc.bad&&rc.items.length)sols.push({p:pj,items:rc.items});}
+  if(sols.length===1)return sols[0].items;
+  return [];
 }
 function parseMateSheet(wb){
   var items=[];
@@ -9538,7 +9594,7 @@ function v32Num(v){var n=v38pNum(v);return n===null?NaN:n;}/* V40 卡40b（B208/
 var V38BAD={v38bad:1},V38TYPING={v38typing:1};
 function v38Half(s){return String(s).replace(/[！-～]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-65248);});}
 function v38Num(v){
-  var s=v38Half(String(v==null?'':v)).replace(/[、\s]/g,'');/* V40 卡40b（B208/Q157）：逗号不再一律剥——千分位分组（每组恰3位）剥掉；单个逗号夹数字当小数点（8,5=8.5，设计师 09-27 拍板）；其余沿旧口径剥 */
+  var s=v38Half(String(v==null?'':v)).replace(/[−﹣]/g,'-').replace(/[、\s]/g,'');/* V40 卡40b（B208/Q157）：逗号不再一律剥——千分位分组（每组恰3位）剥掉；单个逗号夹数字当小数点（8,5=8.5，设计师 09-27 拍板）；其余沿旧口径剥 *//* V42 卡79（B397）：负号形态归一——U+2212 数学负号、U+FE63 小减号先换成 ASCII '-' 再走既有解析（前一步 v38Half 本来就管全角区间，实测 U+FF0D 全角负号已在其中、一字未动）。只加归一、不加尺：换完仍落进旧语法的照旧解析，落不进的仍旧 V38BAD／V38TYPING，绝不折 0、绝不造正（R-11）。EN/EM DASH（U+2013/2014）与上标负号（U+207B）刻意不收——它们在纸上常当「无/不适用」占位，收进来会把「拒绝＋提示＋弹回」变成「静默不成交」，等于新增假绿面；要不要收请另拍。 */
   if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s))s=s.replace(/,/g,'');
   else if(/^\d+,\d+$/.test(s))s=s.replace(',','.');
   else s=s.replace(/,/g,'');
@@ -11632,7 +11688,7 @@ function v28PreviewConfirm(pd,onOk){
    +sample.slice(0,10).map(function(r){return '<tr><td>'+esc(r.part||'')+'</td><td>'+esc(r.n)+'</td><td>'+esc(r.u)+'</td><td>'+esc(r.q)+'</td><td>'+esc(r.p)+'</td></tr>';}).join('')
    +(sample.length>10?'<tr><td colspan="5" class="hint">… 共 '+bc+'+'+mc+' 项，导入后可在报价单查看全部</td></tr>':'')
    +'</table>'
-   +'<div class="actions" style="margin-top:10px"><button class="btn" onclick="closeModal()">取消</button><button class="btn brand" onclick="closeModal();'+(onOk||'')+'">确认导入</button></div></div>';
+   +'<div class="actions" style="margin-top:10px"><button class="btn" onclick="closeModal()">取消</button><button class="btn brand" onclick="'+(function(){var w42f=function(i){var e=document.getElementById(i);return e?String(e.value):'';};window._v42WizForm={name:w42f('nc_name'),phone:w42f('nc_phone'),addr:w42f('nc_addr'),area:w42f('nc_area'),month:w42f('nc_month'),status:w42f('nc_status'),designer:w42f('nc_designer'),pkg:w42f('nc_pkg'),pd:window._xlsxData};return '';})()/* V42 卡74（B385）：v14Modal 用预览覆写 #modalHost，向导第 1 步那些格子在建完预览串的这一拍之后就不在这台 DOM 上了，所以在还没覆写之前把客户名/面积/解析件留在 window._v42WizForm；它贡献的串是空串，屏上那张预览逐字节不变 */+'closeModal();'+(onOk||'')+'">确认导入</button></div></div>';
   v14Modal('📋 导入预览',h,'640px');
 }
 function v26ParseWbToCust(wb){
@@ -11656,13 +11712,29 @@ function v26ParseWbToCust(wb){
 }
 /* V26-2 向导导入（统一解析 + 识别统计信息条） */
 function v26WizOk(bc,mc,gc){
-  var src=document.getElementById('nc_src');if(src)src.value='__blank';
-  var info=document.getElementById('nc_xinfo');
-  if(info){
-    info.style.display='flex';
-    info.innerHTML='<label></label><span style="color:var(--ok);font-size:13px">✓ 已识别 '+bc+' 条基装 + '+mc+' 条主材 + '+gc+' 条综合（共 '+(+bc+ +mc+ +gc)+' 项）</span>';
-  }
-  showToast('已解析报价表：基装 '+bc+' / 主材 '+mc+' / 综合 '+gc,2500);
+  /* V42 卡74（B385）：确认导入＝真建客户（D-12 口径，可翻案）。向导 UI、解析函数、createCustomer 本体一字未动，这里只调用。
+     第 1 步的格子与解析件由 L11635 在建预览串那一拍留在 window._v42WizForm；原第 11659/11660 行那两句 if(src)/if(info) 在真点上永远短路（宿主已被预览换掉），这就是「确认=取消」的第一层。 */
+  var f=window._v42WizForm||{},pd=window._xlsxData||f.pd,ids0={},disk0='';window._v42WizForm=null;
+  var nRows=function(x){var n=0;((x&&x.base)||[]).forEach(function(p){n+=((p&&p.rows)||[]).length;});((x&&x.mate)||[]).forEach(function(p){n+=((p&&p.rows)||[]).length;});return n+(((x&&x.gather)||[]).length);};
+  var nm=String(f.name==null?'':f.name).trim(),ar=parseFloat(f.area)||0,parsed=nRows(pd),shown=(+bc)+(+mc)+(+gc);
+  try{db().customers.forEach(function(x){ids0[String(x.id)]=1;});disk0=String(localStorage.getItem(LS)||'');}catch(e){}
+  if(!(parsed>0)){showToast('报价表没有导入：解析结果已经不在本机上了（预览关掉时一起没了），请重新在向导里上传一次。',7000);return;}
+  if(!nm||!(ar>0)){showToast('请先填写客户姓名与建筑面积。报价表没有导入，盘上一个字节都没动。',7000);return;}
+  window._xlsxData=pd;openNewWizard();/* createCustomer 第 6724/6726/6735/6747 行全是直接读向导第 1 步的格子，所以按产品自己的构建函数把格子建回来，再把快照填进去 */
+  var put=function(k,v){var el=document.getElementById(k);if(el&&v!=null)el.value=v;};
+  put('nc_name',nm);put('nc_phone',f.phone);put('nc_addr',f.addr);put('nc_area',f.area);put('nc_month',f.month);put('nc_status',f.status);put('nc_designer',f.designer);put('nc_pkg',f.pkg);
+  var sw=document.getElementById('nc_src');if(sw)sw.value='';/* '' 不是 __rooms/__blank、也不以 tpl 开头 ⇒ 走 createCustomer 第 6731 行那条「用 window._xlsxData」的支路；原第 11659 行钉死的 '__blank' 走的是第 6730 行 b=m=g=[]，那是同一件事的第二层 */
+  createCustomer();
+  if(document.getElementById('nc_name'))closeModal();/* createCustomer 在只读闸或姓名校验那两拍就 return 了，临时建回来的向导不许留在屏上 */
+  var add=db().customers.filter(function(x){return !ids0[String(x.id)];}),landed=add.length===1?nRows(add[0]):-1,disk1='';
+  try{disk1=String(localStorage.getItem(LS)||'');}catch(e){}
+  var wrote=(disk1!==disk0),cn=add.length===1?String(add[0].name):'';
+  if(add.length===1&&wrote&&landed===parsed&&landed===shown)showToast('已导入 '+landed+' 行到客户「'+cn+'」',4000);
+  else if(add.length===1&&wrote)showToast('客户「'+cn+'」建出来了，但行数对不上：预览说 '+shown+' 行、解析 '+parsed+' 行、单上 '+landed+' 行，请到报价单核对。',8000);
+  else if(add.length===1)showToast('客户「'+cn+'」只在内存里，没能存进本机（刷新就回到原样），请先「导出数据」备份。',8000);
+  else if(_V21_READONLY){/* 只读那一支：createCustomer 第一句的 v38RoGuard 已经把具体那句说在屏上了，这里不覆盖后写者占屏 */}
+  else showToast('报价表没有导入：没有新增客户，盘上没动（解析 '+parsed+' 行）。',8000);
+  window._xlsxData=null;
 }
 /* V28-3B 吊顶列表化：函数体见注入块 */
 function v26WizImport(input){
