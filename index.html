@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>设计师工作站</title>
-<script>WORKBENCH_VERSION='v42-2026-10-04';</script>
+<script>WORKBENCH_VERSION='v43-2026-10-09';</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 #topbar .sp{flex:1}
@@ -1467,7 +1467,7 @@ function v38SetCur(id){
   return id;
 }
 document.addEventListener('keydown',function(e){
-  var m=e.ctrlKey||e.metaKey;
+  var m=e.ctrlKey||e.metaKey,v43mh=document.getElementById('modalHost');if(m&&v43mh&&v43mh.firstElementChild&&(e.key==='z'||e.key==='Z'||e.key==='y'||e.key==='Y')){e.preventDefault();return;}
   if(m&&!e.shiftKey&&(e.key==='z'||e.key==='Z')){e.preventDefault();undoHist();return;}
   if(m&&e.shiftKey&&(e.key==='z'||e.key==='Z')){e.preventDefault();redoHist();return;}
   if(m&&(e.key==='y'||e.key==='Y')){e.preventDefault();redoHist();return;}
@@ -3115,7 +3115,7 @@ function renderPanel(){
   v28BizLock();
   renderSide();
   try{updHistBtns();}catch(e){}
-  try{v31BindRowMenu();}catch(e){}
+  try{v31BindRowMenu();}catch(e){}if(T==='overview'){try{hxRender();}catch(e){}}/* V43 卡90（B406）：重画收尾补一次产品既有的户型库渲染口。#hxList 的内容全文只有 hxRender() 一处写入出口（L9530），而 renderPanel() 用 innerHTML 整块换掉 #panel（L3102/L3113 ⇒ infoHtml 里那句空 <div id="hxList"></div>），所以开机 L11937、上传 L9559、加 URL L9577 这些只走 renderPanel 的拍子都会把房型表格清成 0 行、刷新也不回来（盘上 files 一个字节没丢）。这里只加一次既有口的调用，T 判 overview 才走（hxRender 本体自带 if(el) 缺席保护）；hxRender／上传与加 URL 的 handler／infoHtml 一字未动，零增删行。 */
 }
 function toggleDrop(ev,btn){
   if(ev&&ev.stopPropagation)ev.stopPropagation();
@@ -3620,7 +3620,7 @@ document.addEventListener('mousedown',function(ev){
     cellApply(_cellEdit.el);
   }
 },true);
-function onQ(el,pi,ri){var c=cur(),v=parseQ(el.value);if(v38No(el,v))return;v32CellHist(el);c.base[pi].rows[ri].q=v;qLocalUpdate(c,pi,ri,'base')}
+function onQ(el,pi,ri){var c=cur(),v=parseQ(el.value);if(v38No(el,v))return;v32CellHist(el);c.base[pi].rows[ri].q=v;c.base[pi].rows[ri]._manual=1;qLocalUpdate(c,pi,ri,'base')}/* V43 卡80（B412）：数量在这一拍真落进模型，就同时打上手写标记——字段与值都照第 4952 行 onRN 那一句（_manual＝数字 1），不自创字段；标记落在 v38No 那道闸之后，认不出数的那一拍既不写数量也不写标记 */
 function onP(el,pi,ri){var c=cur(),v=parseP(el.value);if(v38No(el,v))return;v32CellHist(el);c.base[pi].rows[ri].p=v;qLocalUpdate(c,pi,ri,'base')}
 function onMQ(el,pi,ri){var c=cur(),v=parseQ(el.value);if(v38No(el,v))return;v32CellHist(el);c.mate[pi].rows[ri].q=v;qLocalUpdate(c,pi,ri,'mate')}
 function onMP(el,pi,ri){var c=cur(),v=parseP(el.value);if(v38No(el,v))return;v32CellHist(el);c.mate[pi].rows[ri].p=v;qLocalUpdate(c,pi,ri,'mate')}
@@ -3955,7 +3955,7 @@ function payHtml(c){
   /* v20 P2-A：收款节点置顶——据实结算移动到收款节点之后并默认折叠 */
   h+='<div class="card"><h4>收款节点（按状态分组 · 点击节点展开明细）<span class="tools">'
     +'<button class="btn mini brand" onclick="v14AddPay()">＋ 添加节点</button></span></h4>'
-    +'<div class="hint">金额＝总造价×比例自动算；每个节点可分多次收款。</div>';
+    +'<div class="hint">金额＝总造价×比例自动算；每个节点可分多次收款。</div>'+paySettleNote(c,tot);/* V43 卡82（B392／D-18）：结算价因「据实调整项」变动时把「哪个节点从多少变到多少」说在收款页上；调整合计＝0 时 paySettleNote 返回空串 ⇒ 无结算变动时屏上与基线逐字同形 */
   var today=todayStr();
   /* v18 阶段7：主合同收款节点在上（按状态分组），增项款节点在下（单独分组"增项收款"） */
   var mains=[],addons=[];
@@ -4020,14 +4020,14 @@ function payCard(c,i,today){
     +'<div class="payc-body" style="display:none">'
     +'<div class="payc-row">'
     +'<label class="payc-ck"><input type="checkbox" '+(checked?'checked':'')+' title="勾选=整笔收讫" onchange="v14PayDone('+i+',this.checked)"> 整笔收讫</label>'
-    +'<label>比例 <input class="pctin" type="text" inputmode="decimal" value="'+p.pct+'" oninput="payPct('+i+',this.value)"> %</label>'
+    +'<label>比例 <input class="pctin" type="text" inputmode="decimal" value="'+p.pct+'" oninput="payPct('+i+',this.value)" onchange="payPct('+i+',this.value)"> %</label>'
     +'<label>收款日期 <input type="date" value="'+esc(p.date||'')+'" class="dt" oninput="payDate('+i+',this.value)"></label>'
     +'<label>计划日期 <input type="date" value="'+esc(p.planDate||'')+'" class="dt" oninput="payPlanDate('+i+',this.value)"></label>'
     +'<label>关联工地 <select class="bindsel" onchange="payBind('+i+',this.value)">'+opts+'</select></label>'
     +(linked?'<span class="canpay">可收款</span>':'')
     +'</div>'
     +'<div class="payc-row">'
-    +'<label>节点名称 <input value="'+esc(p.label)+'" oninput="payLabel('+i+',this.value)" style="width:150px"></label>'
+    +'<label>节点名称 <input value="'+esc(p.label)+'" oninput="payLabel('+i+',this.value)" onchange="payLabel('+i+',this.value)" style="width:150px"></label>'
     +'<span class="hint">'+esc(p.note||'')+'</span>'
     +'<button class="btn mini brand" onclick="payFlowAdd('+i+')">＋ 收款</button>'
     +'<button class="btn mini" onclick="payFlowToggle('+i+')">流水</button>'
@@ -4043,8 +4043,8 @@ function payBind(i,v){
   save();renderPanel();
 }
 
-function payLabel(i,v){cur().payments[i].label=v;save()}
-function payPct(i,v){var c=cur();c.payments[i].pct=parseFloat(v)||0;save();updatePayAmts(c)}
+function payLabel(i,v){var c=cur();c.payments[i].label=v;if(save()&&(!window.V33S||!V33S.edit))renderPanel();}
+function payPct(i,v){var c=cur();c.payments[i].pct=parseFloat(v)||0;var _ok=save();updatePayAmts(c);if(_ok&&(!window.V33S||!V33S.edit))renderPanel();}
 function payDate(i,v){cur().payments[i].date=v;save()}
 
 /* ---------- 选材表 ---------- */
@@ -4402,7 +4402,7 @@ function v27TitleUpd(){
   document.title=(String(nm).trim())?String(nm).trim()+' · 设计师工作台':'设计师工作台';
 }
 function setLogoFile(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(){setLogo(r.result)};r.readAsDataURL(f);}
-function setLogo(dataUrl){var o=setLoad();o.company.logo=dataUrl||'';setSave();renderPanel();}
+function setLogo(dataUrl){var v43Logo=String(dataUrl==null?'':dataUrl);if(v43Logo&&!/^data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/]+=*$/i.test(v43Logo)){v31Toast('Logo 没能换上：这里只存「上传 Logo」选的图片读出的本机地址（data:image/…;base64,…），其它地址不收',6000);return;}var o=setLoad();o.company.logo=v43Logo;setSave();renderPanel();}/* V43 卡86（B402／口径 D-23 代拍）：入口按形状收一道（照第 2356 行算式字符门那种正则＋认不出就不写库），三处 Logo 输出口统一 esc——第 4420／6776 行补，第 11226 行本就有。 */
 function fldSet(g,k,label,val){return '<div class="fld"><label>'+label+'</label><input value="'+escAttr(val==null?'':val)+'" oninput="onSet(\''+g+'\',\''+k+'\',this.value)"></div>';}
 function paperOpt(cur){var a=['A4横版','A4竖版','A3横版'];var s='';a.forEach(function(p){s+='<option '+(p===cur?'selected':'')+'>'+p+'</option>'});return s;}
 function settingsHtml(){
@@ -4417,7 +4417,7 @@ function settingsHtml(){
     +fldSet('company','designer','默认设计师',o.company.designer)
     +fldSet('company','ownerName','称呼（显示名）',o.company.ownerName)
     +'</div><div class="fld"><label>公司 Logo（PNG/JPG，打印抬头用）</label><div class="filebox">'
-    +(o.company.logo?'<img src="'+o.company.logo+'" class="setlogo" alt="logo">':'<span class="qnum">未上传</span>')
+    +(o.company.logo?'<img src="'+esc(o.company.logo)+'" class="setlogo" alt="logo">':'<span class="qnum">未上传</span>')/* V43 卡86（B402）：与第 11226 行同一把尺 */
     +'<button class="btn mini" onclick="document.getElementById(\'setLogoFile\').click()">上传 Logo</button>'
     +'<button class="btn mini danger" onclick="setLogo(\'\')">移除</button>'
     +'<input type="file" id="setLogoFile" accept="image/*" style="display:none" onchange="setLogoFile(this)"></div></div>'
@@ -4492,7 +4492,7 @@ function settingsHtml(){
       var kb=(a.bytes/1024).toFixed(1);
       h+='<div class="fld"><label>'+_esc(a.acct)+(cur?' <span style="color:#2e7d32">（当前）</span>':'')+'</label>'
         +'<div class="usagenote">客户 '+a.customers+' 个 · 占用 '+kb+' KB'+(a.hasSettings?' · 含设置/打印模板':'')+'</div>'
-        +(cur?'':('<div class="btnrow"><button class="btn" onclick="switchAcct(\''+_esc(String(a.acct).replace(/[^0-9A-Za-z_\-]/g,''))+'\')">切换到 '+a.acct+'</button></div>'))
+        +(cur?'':('<div class="btnrow"><button class="btn" onclick="switchAcct(\''+_esc(String(a.acct).replace(/[^0-9A-Za-z_\-]/g,''))+'\')">切换到 '+_esc(a.acct)+'</button></div>'))
         +'</div>';
     });
   }else{
@@ -4915,7 +4915,7 @@ function maybeAcctDiscover(){
     var all=scanLegacyAccts();if(all.length<2||curN>1)return;
     var others=all.filter(function(a){return a.acct!==_ACCT.account&&(a.customers>0||a.hasSettings);});
     if(!others.length)return;
-    var names=others.map(function(a){return a.acct;}).join('、');
+    var names=others.map(function(a){return _esc(a.acct);}).join('、');
     var lt=document.getElementById('legacyTip');if(!lt)return;
     lt.style.display='flex';
     lt.innerHTML='检测到 '+others.length+' 份历史数据（账户 '+(names.length>30?names.slice(0,30)+'…':names)+'），当前账户几乎是空的。'
@@ -5582,6 +5582,44 @@ function prLogsHtml(p,i){
   h+='</div>';
   return h;
 }
+/* V43 卡82（B392／语义＝D-18，设计师 2026-10-04 已定）：主合同收款节点的应收跟随结算价。
+   已收（勾了「整笔收讫」或已有有效流水）的节点金额冻结在「基线原式」与「该节点有效流水之和」取大那一枚——历史流水一分不动、已收满的那颗不会再被下一次涨价推着走；未收节点在「结算价−冻结节点应收−增项款应收」这个池子里按各自 pct 累计取整、最后一颗拿余数 ⇒ 节点应收合计＝结算价、已收＋未收＝新结算价。
+   据实调整合计＝0（没加调整项／调整项全删光／加了 0 元调整项）⇒ 结算价没动，逐字返回基线那句 round(总造价×比例)、屏上也什么都不加（判据③不误伤由这一条构造性保证）。
+   超收或没有可摊的未收节点 ⇒ 不自动倒扣、金额照旧，差额由 paySettleNote 在屏上说真话。
+   尺只有两把：结算价用 settleCalc(c)（与「据实结算」卡同一枚），冻结节点应收＝max(基线原式 round(总造价×比例), 该节点有效流水之和)。快路先按 c.settlement.adjustments 现读调整合计（与 settleCalc 第 5711 行同一个表达式），没调整项时连 recalc 都不碰 ⇒ 与基线的副作用面逐字相同；已收只从有效流水现读，不调 payPaidOf（它第 5599 行会回调 payNodeAmt ⇒ 自指）。 */
+function payMainNodeAmt(c,p,tot){
+  var base=Math.round((tot||0)*((p.pct||0)/100)),sa=(c.settlement&&c.settlement.adjustments)||[],adjRaw=0;
+  sa.forEach(function(a){adjRaw+=(parseFloat(a.amount)||0);});
+  if(!adjRaw)return base;
+  var t=settleCalc(c),adj=Math.round(t.adj)||0;
+  if(!adj)return base;
+  var frozen=0,addon=0,free=[],own=null;
+  (c.payments||[]).forEach(function(q){if(q.kind==='addon'){addon+=payNodeAmt(c,q);return;}var fl=(q.flows||[]).filter(function(f){return f.status!=='作废';});if(q.done||fl.length){var keep=Math.max(Math.round((tot||0)*((q.pct||0)/100)),fl.reduce(function(s,f){return s+(parseFloat(f.amount)||0);},0));frozen+=keep;if(q===p)own=keep;return;}free.push(q);});
+  if(own!==null)return own;
+  var R=Math.round(t.final)-frozen-addon,pct=0;
+  free.forEach(function(q){pct+=(q.pct||0);});
+  if(!(free.length&&R>0&&pct>0))return base;
+  for(var i=0,cum=0,prev=0;i<free.length;i++){cum+=(free[i].pct||0);var acc=Math.round(R*cum/pct),a=acc-prev;prev=acc;if(free[i]===p)return a;}
+  return base;
+}
+/* V43 卡82 重画口：结算价因据实调整项变动时，把「哪个节点从多少变到多少」写在收款页上；调整合计＝0 时返回空串 */
+function paySettleNote(c,tot){
+  var sa=(c.settlement&&c.settlement.adjustments)||[],adjRaw=0;
+  sa.forEach(function(a){adjRaw+=(parseFloat(a.amount)||0);});
+  if(!adjRaw)return '';
+  var t=settleCalc(c),adj=Math.round(t.adj)||0;
+  if(!adj)return '';
+  var ps=c.payments||[],S=Math.round(t.final),frozen=0,addon=0,free=[],moved=[],due=0;
+  ps.forEach(function(q){var b=Math.round((tot||0)*((q.pct||0)/100)),n=payNodeAmt(c,q),fl=(q.flows||[]).filter(function(f){return f.status!=='作废';}),pf=fl.reduce(function(s,f){return s+(parseFloat(f.amount)||0);},0);due+=n;if(q.kind==='addon'){addon+=n;return;}if(q.done||fl.length){frozen+=Math.max(b,pf);return;}free.push(q);if(n!==b)moved.push('「'+esc(String(q.label||'收款节点'))+'」¥'+fmt(b)+' → ¥'+fmt(n));});
+  var R=S-frozen-addon,pct=0;
+  free.forEach(function(q){pct+=(q.pct||0);});
+  var h='<div class="hint">结算价 ¥'+fmtY(S)+'（初始报价 ¥'+fmtY(t.original)+'＋已确认增项 ¥'+fmtY(t.addon)+'＋据实调整 '+(adj>=0?'+':'−')+'¥'+fmtY(Math.abs(adj))+'）：';
+  if(!free.length)h+='节点都已收/已登流水，结算价变的部分没有未收节点可摊（结算价−冻结节点应收−增项款应收＝'+(R>=0?'':'−')+'¥'+fmt(Math.abs(R))+'），请添加节点或自行核对';
+  else if(!(R>0))h+='未收节点金额未动：已收/已登记节点的应收合计 ¥'+fmt(frozen)+' 已达或超过结算价 ¥'+fmtY(S)+'（超 ¥'+fmt(Math.abs(R))+'），软件不自动倒扣，请自行处理';
+  else if(!(pct>0))h+='未收节点的比例合计是 0%，按原比例摊不出数，金额未动';
+  else h+='未收节点按原比例跟随重算：'+(moved.length?moved.join('、'):'（四舍五入后各节点金额与原来相同）')+'；已收/已登流水的节点按已收金额钉住、不随结算价再动';
+  return h+'。节点应收合计 ¥'+fmtY(due)+(due===S?' ＝ 结算价 ✓':'，与结算价差 ¥'+fmt(Math.abs(S-due))+'，请核对')+'。</div>';
+}
 /* ---- 款项升级 ---- */
 function payNodeAmt(c,p){
   var tot=Math.round(c._total)||0;
@@ -5591,7 +5629,7 @@ function payNodeAmt(c,p){
     if(!amt){var at=addonTotals(c);amt=Math.round(at.confirmed);}
     return Math.round((amt||0)*((p.pct||0)/100));
   }
-  return Math.round((tot||0)*((p.pct||0)/100));
+  return payMainNodeAmt(c,p,tot);/* V43 卡82（B392／D-18）：结算价没动时 payMainNodeAmt 逐字返回原来那句 round(总造价×比例)；动了才按 D-18 重算未收节点 */
 }
 function payPaidOf(p){
   var fl=(p.flows||[]).filter(function(f){return f.status!=='作废';});
@@ -5640,7 +5678,7 @@ function payFlowCommit(i){
   save();renderPanel();
 }
 function payFlowField(i,fi,f,v){var p=cur().payments[i];if(p.flows[fi]){p.flows[fi][f]=v;save();}}
-function payFlowVoid(i,fi){var p=cur().payments[i];if(p.flows[fi]){p.flows[fi].status='作废';save();renderPanel();}}
+function payFlowVoid(i,fi){var p=cur().payments[i];if(p.flows[fi]){p.flows[fi].status='作废';/* V43 卡81（B393／口径 D-19 代拍，可翻案）：作废＝把这一笔从有效收款里除名，已收金额、比例、卡片状态当场重算——用的就是第 5638 行 payFlowCommit 那把尺（payPaidOf>=payNodeAmt 且应收>0），不新增尺、不新增字段。先把 p.done 落下再取 payPaidOf：一条有效流水都不剩时 payPaidOf 会退回 「p.done?应收:0」，旧 done 会把自己顶回来，这正是本条病（作废后已收＝整笔应收、卡片仍「已收讫 ✓」）。作废记录本身一个字不删、状态列照旧显示「作废」，审计还在。 */ var c=cur(),amt=payNodeAmt(c,p);p.done=false;p.done=(payPaidOf(p)>=amt&&amt>0);save();renderPanel();}}
 /* v19检查通过：链路4 收款节点——√切换经 v14PayDone 生成/作废整笔流水，取消√且存在分次流水时 confirm 确认，增项款位于主合同节点下方，应收/已收/未收经 payNodeAmt 重算 */
 function v14PayDone(i,v){
   /* V32-8⑦(B-21)：原来 p.done=v 写在确认之前，点「取消」也撤不回，节点状态与流水自相矛盾。
@@ -6773,7 +6811,7 @@ function printHead(c){
   var o=setLoad();var co=o.company||{};var pr=o.print||{};
   var nm=co.name||'装饰公司';
   var h='<div class="phead"><div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">';
-  if(pr.printLogo&&co.logo){h+='<img src="'+co.logo+'" style="max-height:64px;max-width:180px" alt="logo">';}
+  if(pr.printLogo&&co.logo){h+='<img src="'+esc(co.logo)+'" style="max-height:64px;max-width:180px" alt="logo">';}/* V43 卡86（B402）：与第 11226 行同一把尺 */
   h+='<div><div class="ph-name">'+esc(nm)+'</div>'
     +'<div class="ph-line">'+(co.phone?esc(co.phone):'')+(co.phone&&co.addr?'　·　':'')+(co.addr?esc(co.addr):'')+'</div></div></div>'
     +'<div class="ph-title">'+(c&&c.name?'客户：'+esc(c.name)+(c.addr?'　｜　'+esc(c.addr):'')+(c.area?'　｜　'+c.area+'㎡':''):'')+(c&&c.quoteNo?'　｜　报价单号：'+esc(c.quoteNo):'')+'</div></div>';
@@ -8958,7 +8996,7 @@ function plCalcHtml(fi,ri,r){
   h+='</div>';
   h+='</div>';
   h+='<div style="flex:1;min-width:280px">';
-  h+='<div class="card" style="padding:10px"><b>计算结果 <span class="hint">('+(tpl?esc(tpl.name):'')+')</span></b>';
+  h+='<div class="card" id="plCalcRes" style="padding:10px"><b>计算结果 <span class="hint">('+(tpl?esc(tpl.name):'')+')</span></b>';/* V43 卡91（B407）：这张「计算结果」卡补一个 id——门窗尺寸格打字时只换它的内容，不再整扇重建 #modalHost（照 L11180—L11184 calcRefresh 按 id 定点补数的既有形状） */
   h+='<table style="width:100%;border-collapse:collapse;margin-top:4px">'
     +'<tr style="border-bottom:1px solid #e6eaf2"><th style="text-align:left;padding:4px 8px">项目</th><th style="text-align:right;padding:4px 8px">工程量</th><th></th></tr>'
     +row('floor','地面','㎡',cal.floor)
@@ -8993,14 +9031,22 @@ function plCalcDoor(fi,ri,i,k,v){
   plRoomDims(r);var m=r.dim.doors[i];if(!m)return;
   var num=parseFloat(v);if(isNaN(num)||num<0)num=0;
   m[k]=(k==='wrap')?(num?1:0):num;v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */
-  v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);
+  plCalcRes(fi,ri,r);/* V43 卡91（B407）：打字期间不重建框——原来这一拍每键整扇换掉 #modalHost（L5287），正编辑那颗格子当场成游离节点、焦点掉 BODY，window.v14Modal 的外层包装又调 v33Sweep 把新格子重新上锁（L12062→L12004→L11995），第二个字符起键击没有落点（基线实测门宽连打 3000 框里只剩 3、盘上 w=3）。上一行的落库口 v38Commit 与取数数学一字未动。 */
 }
 function plCalcWin(fi,ri,i,k,v){
   var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;
   plRoomDims(r);var m=r.dim.windows[i];if(!m)return;
   var num=parseFloat(v);if(isNaN(num)||num<0)num=0;
   m[k]=num;v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */
-  v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);
+  plCalcRes(fi,ri,r);/* V43 卡91（B407）：同 L8996 那句——打字期间只补结果卡，不重建正编辑的格子。上一行的落库口 v38Commit 与取数数学一字未动。 */
+}
+/* V43 卡91（B407）：算量弹窗的定点补数口——照第 11180—11184 行 calcRefresh「只按 id 改结果、绝不重建输入框」的既有形状，
+   把 plCalcHtml 现算出来的「计算结果」那张卡搬进屏上那张，正在打字那颗格子中一个字都不碰。
+   卡片不在屏上（弹窗已关／已换成别的弹窗）就直接返回：改动已经由上一句 v38Commit 落库，这里只管画，不管存。 */
+function plCalcRes(fi,ri,r){
+  var _h=document.getElementById('plCalcRes');if(!_h)return;
+  var _t=document.createElement('div');_t.innerHTML=plCalcHtml(fi,ri,r);
+  var _n=_t.querySelector('#plCalcRes');if(_n)_h.innerHTML=_n.innerHTML;
 }
 function plCalcDoorAdd(fi,ri){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.doors.push({w:0.9,h:2.1,wrap:0});v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
 function plCalcWinAdd(fi,ri){var p=plPlan();var r=p.floors[fi]&&p.floors[fi].rooms[ri];if(!r)return;plRoomDims(r);r.dim.windows.push({w:1.5,h:1.5});v38Commit();/* V42 卡73（B388）：编辑即落库，接产品既有每拍口 v38Commit()（同第 3717 行单价/数量那条链），灯跟着 save() 返回值说话 */v14Modal('🔢 工程量计算（'+esc(r.label)+'）',plCalcHtml(fi,ri,r),860);}
@@ -9246,7 +9292,7 @@ function v38KBPrice(s){
   var raw=String(s==null?'':s).trim();
   var n=v38Num(raw);
   if(typeof n==='number'&&isFinite(n))return {n:n,how:'数字'};
-  var m=/^([+-]?\d+(?:\.\d+)?)\s*(元|块|只|个|RMB|￥|¥)?\s*(?:[\/每]\s*[^\d\/]{0,6})?$/.exec(v38Half(raw));
+  var m=/^([+-]?\d+(?:\.\d+)?)\s*(元|块|只|个|RMB|￥|¥)?\s*(?:[\/每]\s*[^\d\/]{0,6})?$/.exec(v38Half(raw).replace(/[\u2212\uFE63]/g,'-'));/* V43 卡83（B413）：这条尾巴支不经过 v38Num 的负号归一 ⇒ U+2212/U+FE63 打头＋单位读不出（「−800元」在库里折成 0 还报名"没认出来"）。这里并入与 v38Num 首行逐字符同一枚表（−、﹣ → ASCII '-'）再走原有正则，不新造第三把尺：落不进的照旧 return null，绝不折 0、绝不造正。全角负号 U+FF0D 本来就由 v38Half 覆盖；en/em dash（U+2013/2014）与上标负号（U+207B）照旧不收，与卡79 同一口径。 */
   if(m){var k=v38Num(m[1]);if(typeof k==='number'&&isFinite(k))return {n:k,how:'带单位文本'};}
   return null;
 }
@@ -9471,8 +9517,19 @@ function onInfoFile(input){
       return;
     }
     c[key+'File']={name:f.name,data:rd.result};
-    try{save();}catch(e){v31Toast('保存失败：本地存储空间不足，可上传更大文件自动走本地归档');c[key+'File']=null;return;}
-    renderPanel();
+    /* V43 卡84（B396／口径 D-21 代拍，可翻案）：原来这三行是 try{save();}catch(e){…提示…}，而 save()（第 1787—1814 行）把 localStorage.setItem 包在自己的 try/catch 里、超配额只 setSaveLamp('err')＋气泡＋return false，从不抛（v38Ser 第 1883 行也整体包 try、失败回 null）⇒ 那句 catch 提示是死代码：实测 3.91／3.95／3.99MiB 三档 save() 返回 false、抛=null，L9474 那句话一次都没上过屏，而下一行 renderPanel() 照旧把文件区画成「✓ 文件名＋下载」，刷新后读回是「未上传」。真实机理不在 btoa（本文件 0 处字面）：第 9460 行那道 f.size>4*1024*1024 把 ≤4MiB 的图纸按 readAsDataURL 的 base64 内联进整库，base64 比原文件长 4/3，整库这一笔能不能写下取决于「同源 5MiB 配额−别的键−库里其余数据」——实测本机样板间库最大能内联 3,884,029 字节，再塞 1,000,000 字符就只剩 3,132,440 字节（斜率≈0.75＝4/3 的倒数）⇒ 这条界随她的数据量往下移，不是常数。治法照产品既有机制：内联这一笔没写进本机时改走第 9462 行那条本机归档的腿（IndexedDB，与 >4MiB 同一存法，实测 12MiB 也归档得下），并把内存里那份没落库的 base64 从模型里摘掉——它留着会被「⬇ 导出全部数据」当真有件带走（实测导出件 5,589,544 字节、含这个文件名与 base64 各 1 处），而那种备份件再导回来必然写不下（实测落库抛 QuotaExceededError，屏上「写入失败（本机存储空间已满），已退回导入前的数据」）＝自救闭环断在这。只读页签／跨页签冲突／坏原文留底失败 这三种 save() 返回 false 的来路不是配额，本卡一律不接管、行为与基线逐字相同（话由它们自己那三处说）。没新增键、没新增尺、没动第 9460 行那道闸与 >4MiB 那条腿；装不装得下这句话不说死，因为它随已存数据量变。 */
+    var v43ok=save();
+    if(v43ok!==false||_V21_READONLY||_v38Conflict||(_v38Broken&&!_v38Broken.stashed)){renderPanel();return;}
+    idbPut(rd.result,f.name).then(function(id){
+      c[key+'File']={name:f.name,idb:true,fileId:id,size:f.size};
+      if(save()!==false){renderPanel();v31Toast('「'+f.name+'」本机存储装不下它（4MB 以内的图纸是连同整库直接存在本机里的，它比这个更占地方），已改成本机归档：跟 4MB 以上的图纸同一存法——屏上能下载、重开软件也还在，但它不进「导出数据」那份常规备份；想让它进备份得压到装得下为止（装不装得下随你本机已存的数据量变）。',9000);return;}
+      c[key+'File']=null;save();renderPanel();
+      v31Toast('「'+f.name+'」没有存进本机：内联那一条写不下，改走本机归档这一笔也没写成。现在文件区是「未上传」，关掉本页就回到传之前那样；先在「设置」里清掉不需要的旧单，或把图纸压缩后再传。',9000);
+    }).catch(function(){
+      c[key+'File']=null;save();renderPanel();
+      v31Toast('「'+f.name+'」没有存进本机：内联那一条写不下，而这台机器不支持本机归档。请把图纸压缩后再传（4MB 以内的也可能装不下，装不装得下随你本机已存的数据量变）。',9000);
+    });
+    input.value='';
   };
   rd.readAsDataURL(f);
 }
@@ -9645,15 +9702,47 @@ function rebuildMat(){
 /* ---- 收款节点金额局部刷新 ---- */
 function updatePayAmts(c){
   recalc(c);
-  var tot=Math.round(c._total)||0;
-  var rows=document.querySelectorAll('.pay');
+  /* V43 卡95（B411）接真锚点：旧版按收款行改版前的三个旧类名取元素，而那些类名早已没有任何生成点（全文 0 处），
+     于是开头那句 querySelectorAll 恒回一张空表——"总造价×比例→写回每笔金额"整段永远落空，这个函数只剩末尾比例合计那一半还活着。
+     现收款卡由 payCard()（L3994—L4039）生成：paycard 卡 → payc-head 内的 payc-name>paytag／payc-amt／payc-bar-in／payc-pct；
+     卡片本身不带节点下标，屏上唯一带下标的锚是 pctin 格的 oninput="payPct(i,...)"（全文只 L4023 一处生成），按它回指第 i 笔。
+     金额一律走产品自己的取数口 payNodeAmt／payPaidOf（L5586／L5596：增项款按增项单确认额×比例，不是总造价×比例），
+     文案与 fmt／fmtY 口径逐字照 payHtml、payCard ⇒ 局部刷新的结果必须等于整页重画的结果。 */
+  var today=todayStr(),by={};
+  var cards=[].slice.call(document.querySelectorAll('.paycard'));
+  function cardOf(i){for(var k=0;k<cards.length;k++){var q=cards[k].querySelector('.pctin');if(q&&String(q.getAttribute('oninput')||'').indexOf('payPct('+i+',')>=0)return cards[k];}return null;}
   c.payments.forEach(function(p,i){
-    var amt=Math.round(tot*((p.pct||0)/100));
-    if(rows[i]){
-      var amtEl=rows[i].querySelector('.amt');
-      if(amtEl)amtEl.innerHTML='¥'+fmt(amt)+'<div class="amtcn">'+rmbUpper(amt)+'</div>';
-    }
+    var amt=payNodeAmt(c,p),paid=payPaidOf(p);by[i]=amt;
+    var overdue=!!(p.planDate&&p.planDate<today&&paid<amt);
+    var stCls=(paid>=amt&&amt>0)?'done':(overdue?'over':'todo');
+    var stTxt=(paid>=amt&&amt>0)?'已收讫 ✓':(overdue?'逾期':'待收');
+    var progPct=amt>0?Math.min(100,Math.round(paid/amt*100)):0;
+    var card=cardOf(i);if(!card)return;
+    var amtEl=card.querySelector('.payc-amt');
+    if(amtEl)amtEl.innerHTML='已收 <b class="ok">¥'+fmt(paid)+'</b> / 应收 ¥'+fmt(amt);
+    var tag=card.querySelector('.paytag');if(tag){tag.className='paytag '+stCls;tag.textContent=stTxt;}
+    card.className='paycard '+stCls;
+    var bar=card.querySelector('.payc-bar-in');if(bar)bar.style.width=progPct+'%';
+    var pcEl=card.querySelector('.payc-pct');if(pcEl)pcEl.textContent=progPct+'%';
   });
+  /* 汇总三格与总进度条由同一次打字决定（口径照 payHtml L3939—L3947）：整页重画之前先跟着刷，别让屏上自相矛盾。
+     汇总三格 v14-ps-v 全文只有 L3944/3945/3946 三处生成、文档序＝应收/已收/未收；v14-bar-in 与 v14-ps-pct 各只 L3947 一处。 */
+  var aSum=0,pSum=0;c.payments.forEach(function(p){aSum+=payNodeAmt(c,p);pSum+=payPaidOf(p);});
+  var unpaid=Math.max(0,aSum-pSum),barPct=aSum>0?Math.round(pSum/aSum*100):0;
+  var boxes=document.querySelectorAll('.v14-ps-v');
+  if(boxes[0])boxes[0].textContent='¥'+fmtY(aSum);
+  if(boxes[1])boxes[1].textContent='¥'+fmtY(pSum);
+  if(boxes[2])boxes[2].textContent='¥'+fmtY(unpaid);
+  var gbar=document.querySelector('.v14-bar-in');if(gbar)gbar.style.width=barPct+'%';
+  var gpc=document.querySelector('.v14-ps-pct');if(gpc)gpc.textContent=barPct+'%';
+  /* 分组头「N 笔 / ¥合计」：局部刷新不移卡片，所以合计按屏上的归属就地求和——屏上几个钱数必须彼此自洽。
+     （卡片跨过收讫线时"该挂哪个组标题下"只有整页重画能挪，本段不管挪，下一次重画自然对齐。） */
+  var grp=null,grps=[];
+  document.querySelectorAll('.v17-grp,.paycard').forEach(function(e){
+    if(e.classList.contains('v17-grp')){grp={盒:e.querySelector('.v17-grp-m'),笔:0,额:0};grps.push(grp);}
+    else if(grp){var q=e.querySelector('.pctin'),mm=q?String(q.getAttribute('oninput')||'').match(/payPct\((\d+),/):null;if(mm&&by[+mm[1]]!=null){grp.笔++;grp.额+=by[+mm[1]];}}
+  });
+  grps.forEach(function(x){if(x.盒&&x.笔)x.盒.innerHTML=x.笔+' 笔 / ¥'+fmt(x.额);});
   var sum=0;c.payments.forEach(function(p){sum+=(p.pct||0)});
   var hint=document.querySelector('.payhint');
   if(hint)hint.innerHTML='比例合计：<b>'+sum+'%</b>'+(sum===100?'　✓ 已到100%':(sum<100?'　（不足100%）':'　（超出100%）'));
@@ -10019,10 +10108,10 @@ function importQuoteXlsx(input){
           var qRef=ruleQ?(parseFloat(row._q)||0):oq,pRef=ruleP?(parseFloat(row._p_disp)||0):op;
           if(Math.abs(qRef-p.q)>1e-9){if(ruleQ)skip(p,'数量由规则算出（'+row.q+'），不按表覆盖','数量',qRef,p.q);else diffs.push({sec:hit.sec,pi:pi,ri:ri,partName:partName,name:p.name,field:'q',old:row.q,new:p.q,chk:true});}
           if(Math.abs(pRef-p.p)>1e-9){if(ruleP)skip(p,'单价由规则算出（'+row.p+'），不按表覆盖','单价',pRef,p.p);else diffs.push({sec:hit.sec,pi:pi,ri:ri,partName:partName,name:p.name,field:'p',old:row.p,new:p.p,chk:true});}
-          var gEcho=(hit.sec==='mate'&&!String(row.g||'')&&p.g===String(row.h||''));   /* B21 回声：导出把工艺说明兜进第 7 列 */
-          if(p.g&&String(row.g||'')!==String(p.g)){
-            if(gEcho)skip(p,'主材那一列导出时写的是工艺说明（B21 缺列，归卡 3），回传不许把它当成计量规则写进 g','计量规则',row.g,p.g);
-            else diffs.push({sec:hit.sec,pi:pi,ri:ri,partName:partName,name:p.name,field:'g',old:row.g,new:p.g,chk:false});
+          /* V43 卡94（B410）：主材第 7 列导出写的是 rr.g||rr.h（见 L9763），g 为空时那格里装的是工艺说明 ⇒ 比对基准改成「导出去写的那个数」，与上面 B07 数量／单价同一把尺：逐字相同＝一个字不提，真改了才单列一条改 g */
+          var gRef=(hit.sec==='mate'&&!String(row.g||''))?String(row.h||''):String(row.g||'');
+          if(p.g&&String(gRef)!==String(p.g)){
+            diffs.push({sec:hit.sec,pi:pi,ri:ri,partName:partName,name:p.name,field:'g',old:row.g,new:p.g,chk:false});
           }
           if(p.h&&String(row.h||'')!==String(p.h))diffs.push({sec:hit.sec,pi:pi,ri:ri,partName:partName,name:p.name,field:'h',old:row.h,new:p.h,chk:false});
           /* v22.1 M1 的本意：表里写了合价就判一次合价差异（默认不勾，需她确认）。
@@ -11426,7 +11515,7 @@ function savePackageZip(zipBlob,fname,files){
       .then(function(h){return h.createWritable();})
       .then(function(w){return w.write(zipBlob).then(function(){return w.close();});})
       .then(function(){showToast('交付包已保存，共 '+files.length+' 个文件',3500);})
-      .catch(function(e){if(e&&e.name==='AbortError'){showToast('已取消保存',2000);return;}fallback('当前浏览器不支持指定目录保存，已改为逐文件下载（含 manifest.txt）');});
+      .catch(function(e){var n=(e&&e.name)||'';if(n==='AbortError'){showToast('已取消保存',2000);return;}if(n==='NotAllowedError'||n==='SecurityError'){showToast('浏览器没给目录权限，请重选目录后重试',4000);return;}fallback('交付包没能存成 ZIP（'+(n||'未知原因')+'），已改为逐文件下载（含 manifest.txt）');});/* V43 卡92（B408）：这条 catch 原来只认一个名字，其余异常一律走 fallback，于是权限被拒时屏上报的是「不支持」（本机原生复现：无手势直调 exportPackage，Chrome 自己抛 SecurityError "Must be handling a user gesture"，catch 收下后照旧 fallback ⇒ 6 个文件散在下载目录）。现按异常名分三路：取消＝原话；权限被拒（NotAllowedError／SecurityError）＝说权限并当场停，不再产散落文件；其余异常＝仍逐文件下载救人，但话里报真实异常名。成功腿（L11428）、AbortError 语义、else 那条真不支持腿（L11431 原文案）、fallback 本体（L11418—L11423）、downloadBlob（L11412—L11416）一字未动；零增删行。 */
   }else{
     fallback('当前浏览器不支持指定目录保存，已改为逐文件下载（含 manifest.txt）');
   }
@@ -13542,7 +13631,7 @@ function v33HisShow(ev) {
     d.parentNode && d.parentNode.removeChild(d);
     try { v31Toast('已回到第 ' + (k + 1) + ' 步之前', 2000); } catch (e2) { }
   });
-  setTimeout(function () { document.addEventListener('mousedown', function off() { d.parentNode && d.parentNode.removeChild(d); document.removeEventListener('mousedown', off, true); }, true); }, 0);
+  setTimeout(function () { document.addEventListener('mousedown', function off(ev) { if (ev && d.contains(ev.target)) return; d.parentNode && d.parentNode.removeChild(d); document.removeEventListener('mousedown', off, true); }, true); }, 0);/* V43 卡87（B403）：这只 capture 级 mousedown 原来不判事件源，点面板里那条 button[data-his] 时 mousedown 先于 click 到，面板在 click 派发前就被 removeChild 摘掉，条目上的监听永远收不到 ⇒ 历史步骤面板 100% 不可用。判源用第 3006—3009 行 v31Menu 那条「外点关闭」同一把尺（!m.contains(e.target)），事件源在面板内就不摘、在面板外照旧当场摘面板并摘掉监听；时机（mousedown capture）、类名、DOM 结构一律不动，零增删行。 */
   return d;
 }
 /* ---------- 单位候选 + 项目名走定额库自动完成（V33-6 的根因治理） ---------- */
